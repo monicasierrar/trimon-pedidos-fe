@@ -21,9 +21,9 @@ graph TD
     end
 
     style User fill:#D3D3D3,stroke:#333,stroke-width:2px
-    style ReactWebApp fill:#ADD8E6,stroke:#333,stroke-width:2px
-    style BackendServer fill:#ADD8E6,stroke:#333,stroke-width:2px
-    style ThirdPartyService fill:#FFC0CB,stroke:#333,stroke-width:2px
+    style ReactWebApp fill:#A2D9FF,stroke:#333,stroke-width:2px
+    style BackendServer fill:#A2D9FF,stroke:#333,stroke-width:2px
+    style ThirdPartyService fill:#FFC680,stroke:#333,stroke-width:2px
 
 ```
 
@@ -46,8 +46,8 @@ graph TD
     backend_server -- "Sends responses to (HTTPS/JSON)" --> react_web_app
 
     %% Styling (optional, for visual distinction)
-    style react_web_app fill:#ADD8E6,stroke:#333,stroke-width:2px
-    style backend_server fill:#ADD8E6,stroke:#333,stroke-width:2px
-    style third_party_service fill:#FFC0CB,stroke:#333,stroke-width:2px
+    style react_web_app fill:#A2D9FF,stroke:#333,stroke-width:2px
+    style backend_server fill:#A2D9FF,stroke:#333,stroke-width:2px
+    style third_party_service fill:#FFC680,stroke:#333,stroke-width:2px
 
 ```
