@@ -8,13 +8,12 @@ const LoginPage = () => {
   const navigate = useNavigate();
 
   const handleGoogleLogin = async () => {
-    // try {
-    //   await signInWithPopup(auth, googleProvider);
-    //   navigate('/');
-    // } catch (error) {
-    //   console.error("Error durante el login con Google", error);
-    // }
-    console.log("login")
+    try {
+      await signInWithPopup(auth, googleProvider);
+      navigate('/');
+    } catch (error) {
+      console.error("Error durante el login con Google", error);
+    }
 
   };
 

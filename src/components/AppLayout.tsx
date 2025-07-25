@@ -17,8 +17,8 @@ import {
 } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuthState } from 'react-firebase-hooks/auth';
-// import { signOut } from 'firebase/auth';
-// import { auth } from '../firebase-config';
+import { signOut } from 'firebase/auth';
+import { auth } from '../firebase-config';
 import logo from '../assets/logo.png';
 import PointOfSaleIcon from '@mui/icons-material/PointOfSale';
 import HistoryIcon from '@mui/icons-material/History';
@@ -27,9 +27,7 @@ import SyncAltIcon from '@mui/icons-material/SyncAlt';
 const drawerWidth = 240;
 
 export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const user = {
-    displayName: 'John Doe'
-  };
+  const [user] = useAuthState(auth);
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   
   // Hooks para la navegación
@@ -45,7 +43,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
   };
 
   const handleLogout = () => {
-    // signOut(auth);
+    signOut(auth);
     handleClose();
   };
 
@@ -60,7 +58,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
           
             <div>
               <IconButton onClick={handleMenu} sx={{ p: 0 }}>
-                <Avatar alt={'John Doe'} src={''} />
+                <Avatar alt={user.displayName || ''} src={user.photoURL || ''} />
               </IconButton>
               <Menu
                 anchorEl={anchorEl}
