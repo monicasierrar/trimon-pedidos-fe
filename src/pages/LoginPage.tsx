@@ -1,5 +1,6 @@
 // src/pages/LoginPage.tsx
 import { Box, Button, Typography } from '@mui/material';
+import { signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider } from '../firebase-config';
 import { useNavigate } from 'react-router-dom';
 import GoogleIcon from '@mui/icons-material/Google';
