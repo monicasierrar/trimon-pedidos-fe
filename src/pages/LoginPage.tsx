@@ -1,7 +1,5 @@
 // src/pages/LoginPage.tsx
 import { Box, Button, Typography } from '@mui/material';
-import { signInWithPopup } from 'firebase/auth';
-import { auth, googleProvider } from '../firebase-config';
 import { useNavigate } from 'react-router-dom';
 import GoogleIcon from '@mui/icons-material/Google';
 import logo from '../assets/logo.png';
@@ -10,12 +8,14 @@ const LoginPage = () => {
   const navigate = useNavigate();
 
   const handleGoogleLogin = async () => {
-    try {
-      await signInWithPopup(auth, googleProvider);
-      navigate('/');
-    } catch (error) {
-      console.error("Error durante el login con Google", error);
-    }
+    // try {
+    //   await signInWithPopup(auth, googleProvider);
+    //   navigate('/');
+    // } catch (error) {
+    //   console.error("Error durante el login con Google", error);
+    // }
+    console.log("login")
+
   };
 
   return (
