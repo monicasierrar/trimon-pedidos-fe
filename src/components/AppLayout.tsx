@@ -55,7 +55,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
             Gestión de Pedidos
           </Typography>
-          
+          {user && (
             <div>
               <IconButton onClick={handleMenu} sx={{ p: 0 }}>
                 <Avatar alt={user.displayName || ''} src={user.photoURL || ''} />
@@ -75,7 +75,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
                 <MenuItem onClick={handleLogout}>Cerrar Sesión</MenuItem>
               </Menu>
             </div>
-          
+          )}
         </Toolbar>
       </AppBar>
       <Drawer

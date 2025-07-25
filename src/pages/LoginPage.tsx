@@ -1,5 +1,6 @@
 // src/pages/LoginPage.tsx
 import { Box, Button, Typography } from '@mui/material';
+import { auth, googleProvider } from '../firebase-config';
 import { useNavigate } from 'react-router-dom';
 import GoogleIcon from '@mui/icons-material/Google';
 import logo from '../assets/logo.png';
@@ -14,7 +15,6 @@ const LoginPage = () => {
     } catch (error) {
       console.error("Error durante el login con Google", error);
     }
-
   };
 
   return (
