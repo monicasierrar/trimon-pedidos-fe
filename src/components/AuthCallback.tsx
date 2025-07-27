@@ -1,6 +1,6 @@
 // src/components/AuthCallback.tsx
 
-import React, { useEffect, useState } from 'react';
+import  { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Box, CircularProgress, Typography } from '@mui/material';
@@ -21,6 +21,7 @@ const AuthCallback = () => {
       
       axios.post(n8nWebhookUrl, { code })
         .then(response => {
+          console.log("Response from api " + response)
           // 3. Si la validación es exitosa, guarda la información y redirige
           // Aquí guardarías el token de sesión, por ejemplo, en localStorage
           // localStorage.setItem('userToken', response.data.token);
