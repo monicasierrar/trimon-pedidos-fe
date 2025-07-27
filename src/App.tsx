@@ -1,5 +1,4 @@
 // src/App.tsx
-
 import React from 'react'; // <-- AJUSTE: Añadido import de React
 import { Routes, Route } from 'react-router-dom';
 import { AppBar, Toolbar, Typography, Container } from '@mui/material'; // <-- AJUSTE: Imports de Material-UI para el layout
