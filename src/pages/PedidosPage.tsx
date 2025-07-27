@@ -119,7 +119,7 @@ const PedidosPage = () => {
             <Card variant="outlined">
               <CardContent>
                 <Typography variant="h6" gutterBottom>
-                  {clienteSeleccionado.razonSocial} - {clienteSeleccionado.sucursal}
+                  {clienteSeleccionado.razonSocial}
                 </Typography>
                 <Typography color="textSecondary" variant="body2">
                   <strong>NIT:</strong> {clienteSeleccionado.nit}
@@ -129,6 +129,9 @@ const PedidosPage = () => {
                 </Typography>
                 <Typography color="textSecondary" variant="body2">
                   <strong>Ubicación:</strong> {clienteSeleccionado.ciudad}, {clienteSeleccionado.departamento}
+                </Typography>
+                <Typography color="textSecondary" variant="body2">
+                  <strong>Sucursal:</strong> {clienteSeleccionado.sucursal}
                 </Typography>
                 <Typography color="textSecondary" variant="body2">
                   <strong>Teléfono:</strong> {clienteSeleccionado.telefono}
