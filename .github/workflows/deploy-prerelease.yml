@@ -36,7 +36,7 @@ jobs:
       - name: Update package.json with release tag version
         run: |
           # Read package.json, update version, and write it back
-          node -P "p=require('./package.json'); p.version='${{ env.VERSION }}'; JSON.stringify(p, null, 2)" > package.json.tmp
+          node -e "let p=require('./package.json'); p.version='${{ env.VERSION }}'; require('fs').writeFileSync('package.json', JSON.stringify(p, null, 2));"
           mv package.json.tmp package.json
           echo "Updated package.json to version ${{ env.VERSION }}"
 
