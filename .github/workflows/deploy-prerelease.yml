@@ -41,9 +41,9 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git checkout gh-pages # Switch to the gh-pages branch (or your target branch)
           git add package.json
           git commit -m "chore(release): Update package.json version to ${{ env.VERSION }} from release tag [skip ci]"
+          git checkout gh-pages # Switch to the gh-pages branch after committing changes
           git push origin gh-pages # Push changes to the gh-pages branch
 
       - name: Install dependencies
