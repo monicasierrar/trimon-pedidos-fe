@@ -32,10 +32,10 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: Update package.json with release tag version
-      run: |
-        # Update the version in package.json
-        node -e "let p=require('./package.json'); p.version='${{ env.VERSION }}'; require('fs').writeFileSync('package.json', JSON.stringify(p, null, 2));"
-        echo "Updated package.json to version ${{ env.VERSION }}"
+        run: |
+          # Update the version in package.json
+          node -e "let p=require('./package.json'); p.version='${{ env.VERSION }}'; require('fs').writeFileSync('package.json', JSON.stringify(p, null, 2));"
+          echo "Updated package.json to version ${{ env.VERSION }}"
 
       - name: Commit package.json version update (optional but good practice)
         run: |
