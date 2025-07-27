@@ -13,7 +13,6 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 
 // --- AJUSTE: Nuevos imports para el flujo de Zoho ---
 import AuthCallback from './components/AuthCallback'; // Para manejar la redirección de Zoho
-import LoginButton from './components/LoginButton';   // El botón que irá en el AppBar
 
 /**
  * AJUSTE: Se crea un componente de Layout para no repetir el AppBar en cada página.
