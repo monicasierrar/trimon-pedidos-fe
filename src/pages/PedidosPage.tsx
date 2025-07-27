@@ -1,0 +1,264 @@
+import React, { useState, useEffect } from 'react';
+import { AppLayout } from '../components/AppLayout';
+import {
+  Autocomplete,
+  TextField,
+  Card,
+  CardContent,
+  Typography,
+  Button,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  IconButton,
+  Snackbar,
+  Alert,
+  Paper,
+  Stack,
+  Box,
+  Divider,
+} from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
+import SendIcon from '@mui/icons-material/Send';
+import { CSVLink } from 'react-csv';
+import { clientesMock, productosMock, Cliente, Producto } from '../data/mocks';
+
+// Esta interfaz extiende la nueva definición de 'Producto' y le añade la cantidad
+interface PedidoProducto extends Producto {
+  cantidad: number;
+}
+
+const PedidosPage = () => {
+  const [clienteSeleccionado, setClienteSeleccionado] = useState<Cliente | null>(null);
+  const [productosDelPedido, setProductosDelPedido] = useState<PedidoProducto[]>([]);
+  const [fechaPedido, setFechaPedido] = useState('');
+  const [notificacion, setNotificacion] = useState({
+    open: false,
+    message: '',
+    severity: 'success' as 'success' | 'error',
+  });
+
+  useEffect(() => {
+    setFechaPedido(new Date().toLocaleDateString('es-CO', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    }));
+  }, []);
+
+  const handleAddProducto = (producto: Producto | null) => {
+    if (producto && !productosDelPedido.find(p => p.id === producto.id)) {
+      setProductosDelPedido([...productosDelPedido, { ...producto, cantidad: 1 }]);
+    }
+  };
+
+  const handleUpdateCantidad = (id: number, cantidad: number) => {
+    const nuevaCantidad = Math.max(1, cantidad);
+    setProductosDelPedido(
+      productosDelPedido.map(p => (p.id === id ? { ...p, cantidad: nuevaCantidad } : p))
+    );
+  };
+
+  const handleRemoveProducto = (id: number) => {
+    setProductosDelPedido(productosDelPedido.filter(p => p.id !== id));
+  };
+
+  const handleEnviarPedido = () => {
+    console.log("Enviando pedido:", {
+      cliente: clienteSeleccionado,
+      productos: productosDelPedido,
+      total: totalPedido,
+      fecha: new Date().toISOString(),
+    });
+    setNotificacion({ open: true, message: '¡Pedido enviado con éxito!', severity: 'success' });
+  };
+
+  const totalPedido = productosDelPedido.reduce((total, p) => total + p.precio * p.cantidad, 0);
+
+  const csvHeaders = [
+    { label: "Pedido ID", key: "pedidoId" },
+    { label: "Cliente", key: "cliente" },
+    { label: "Fecha y Hora", key: "fechaHora" },
+    { label: "Productos y Cantidades", key: "productos" },
+  ];
+
+  const csvData = [{
+    pedidoId: `PED-${Date.now()}`,
+    cliente: clienteSeleccionado?.razonSocial || '',
+    fechaHora: new Date().toISOString(),
+    productos: productosDelPedido.map(p => `${p.nombre} (x${p.cantidad})`).join('; '),
+  }];
+
+  return (
+    <AppLayout>
+      <Paper sx={{ p: 3, borderRadius: 2 }}>
+        <Stack spacing={3}>
+          <Typography variant="h4">
+            Crear Nuevo Pedido
+          </Typography>
+
+          <Stack direction={{ xs: 'column', md: 'row' }} spacing={3}>
+            <Box sx={{ width: { xs: '100%', md: '66.67%' } }}>
+              <Autocomplete
+                options={clientesMock}
+                getOptionLabel={(option) => `${option.razonSocial} - NIT: ${option.nit}`}
+                onChange={(_, value) => setClienteSeleccionado(value)}
+                renderInput={(params) => <TextField {...params} label="Buscar Cliente" />}
+                isOptionEqualToValue={(option, value) => option.id === value.id}
+              />
+            </Box>
+            <Box sx={{ width: { xs: '100%', md: '33.33%' } }}>
+              <TextField label="Fecha del Pedido" value={fechaPedido} fullWidth InputProps={{ readOnly: true }} />
+            </Box>
+          </Stack>
+
+          {clienteSeleccionado && (
+            <Card variant="outlined">
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  {clienteSeleccionado.razonSocial}
+                </Typography>
+                <Typography color="textSecondary" variant="body2">
+                  <strong>NIT:</strong> {clienteSeleccionado.nit}
+                </Typography>
+                <Typography color="textSecondary" variant="body2">
+                  <strong>Dirección:</strong> {clienteSeleccionado.direccion}
+                </Typography>
+                <Typography color="textSecondary" variant="body2">
+                  <strong>Ubicación:</strong> {clienteSeleccionado.ciudad}, {clienteSeleccionado.departamento}
+                </Typography>
+                <Typography color="textSecondary" variant="body2">
+                  <strong>Sucursal:</strong> {clienteSeleccionado.sucursal}
+                </Typography>
+                <Typography color="textSecondary" variant="body2">
+                  <strong>Teléfono:</strong> {clienteSeleccionado.telefono}
+                </Typography>
+              </CardContent>
+            </Card>
+          )}
+
+          <Divider />
+
+          <Autocomplete
+            options={productosMock}
+            // 1. Muestra solo el nombre cuando un producto es seleccionado
+            getOptionLabel={(option) => option.nombre}
+  
+            // 2. Renderiza una vista personalizada para cada opción en la lista
+            renderOption={(props, option) => (
+            <Box component="li" sx={{ '& > img': { mr: 2, flexShrink: 0 } }} {...props}>
+              <Box>
+                <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+                  {option.nombre} - {option.marca}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Código: {option.codigo} | Modelo: {option.modelo}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Familia: {option.familia} | Grupo: {option.grupo}
+                </Typography>
+                <Typography variant="body2" color="primary" sx={{ fontWeight: 'medium', mt: 1 }}>
+                  Stock: {option.stock} | Precio: {option.precio.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}
+                </Typography>
+              </Box>
+            </Box>
+          )}
+  
+  onChange={(_, value) => handleAddProducto(value)}
+  renderInput={(params) => <TextField {...params} label="Agregar Producto al Pedido" />}
+            disabled={!clienteSeleccionado}
+          />
+
+          <TableContainer component={Paper} variant="outlined">
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Producto</TableCell>
+                  <TableCell align="right">Precio Unit.</TableCell>
+                  <TableCell align="center">Cantidad</TableCell>
+                  <TableCell align="right">Subtotal</TableCell>
+                  <TableCell align="center">Acción</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {productosDelPedido.length === 0 ? (
+                  <TableRow><TableCell colSpan={5} align="center">Agrega productos para comenzar</TableCell></TableRow>
+                ) : (
+                  productosDelPedido.map((p) => (
+                    <TableRow key={p.id}>
+                      <TableCell component="th" scope="row">
+                        {p.nombre}
+                        <Typography variant="caption" display="block" color="textSecondary">
+                          Código: {p.codigo} | Marca: {p.marca}
+                        </Typography>
+                      </TableCell>
+                      <TableCell align="right">{p.precio.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}</TableCell>
+                      <TableCell align="center">
+                        <TextField
+                          type="number"
+                          value={p.cantidad}
+                          onChange={(e) => handleUpdateCantidad(p.id, parseInt(e.target.value, 10))}
+                          inputProps={{ min: 1, style: { textAlign: 'center' } }}
+                          sx={{ width: '80px' }}
+                        />
+                      </TableCell>
+                      <TableCell align="right">{(p.precio * p.cantidad).toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}</TableCell>
+                      <TableCell align="center">
+                        <IconButton color="error" onClick={() => handleRemoveProducto(p.id)}>
+                          <DeleteIcon />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+                {productosDelPedido.length > 0 && (
+                   <TableRow sx={{ '& > td': { border: 0 } }}>
+                      <TableCell colSpan={3} />
+                      <TableCell align="right"><Typography variant="h6">TOTAL:</Typography></TableCell>
+                      <TableCell align="right"><Typography variant="h6">{totalPedido.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}</Typography></TableCell>
+                    </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+
+          <Stack direction="row" justifyContent="flex-end" spacing={2}>
+            <CSVLink
+                data={csvData}
+                headers={csvHeaders}
+                filename={`pedido-${clienteSeleccionado?.nit || ''}-${Date.now()}.csv`}
+                style={{ textDecoration: 'none' }}
+            >
+                <Button 
+                    variant="outlined"
+                    disabled={productosDelPedido.length === 0 || !clienteSeleccionado}
+                >
+                    Exportar a CSV
+                </Button>
+            </CSVLink>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleEnviarPedido}
+              disabled={productosDelPedido.length === 0 || !clienteSeleccionado}
+              startIcon={<SendIcon />}
+            >
+              Enviar Pedido
+            </Button>
+          </Stack>
+        </Stack>
+      </Paper>
+      
+      <Snackbar open={notificacion.open} autoHideDuration={4000} onClose={() => setNotificacion({ ...notificacion, open: false })} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
+        <Alert severity={notificacion.severity} sx={{ width: '100%' }} variant="filled">
+          {notificacion.message}
+        </Alert>
+      </Snackbar>
+    </AppLayout>
+  );
+};
+
+export default PedidosPage;
