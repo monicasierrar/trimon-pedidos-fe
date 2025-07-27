@@ -16,7 +16,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          # Ensure we fetch the tag itself for proper version extraction
           fetch-depth: 0 # Fetch all history for tag access
 
       - name: Setup Node.js
@@ -27,18 +26,16 @@ jobs:
       - name: Get version from release tag
         id: get_tag_version
         run: |
-          # Get the tag name from the GITHUB_REF (e.g., refs/tags/v1.2.3-beta.0)
-          # Remove "refs/tags/" prefix and "v" prefix if present
+          # Extract the version from the release tag (e.g., refs/tags/v1.2.3-beta.0)
           VERSION=$(echo "${{ github.ref }}" | sed 's/refs\/tags\///' | sed 's/^v//')
           echo "Extracted Version from Tag: $VERSION"
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: Update package.json with release tag version
-        run: |
-          # Read package.json, update version, and write it back
-          node -e "let p=require('./package.json'); p.version='${{ env.VERSION }}'; require('fs').writeFileSync('package.json', JSON.stringify(p, null, 2));"
-          mv package.json.tmp package.json
-          echo "Updated package.json to version ${{ env.VERSION }}"
+      run: |
+        # Update the version in package.json
+        node -e "let p=require('./package.json'); p.version='${{ env.VERSION }}'; require('fs').writeFileSync('package.json', JSON.stringify(p, null, 2));"
+        echo "Updated package.json to version ${{ env.VERSION }}"
 
       - name: Commit package.json version update (optional but good practice)
         run: |
@@ -57,6 +54,6 @@ jobs:
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          branch: main # The branch to deploy to
+          branch: gh-pages # The branch to deploy to (adjust if needed)
           folder: build # The folder containing your built Trimon Pedidos FE
-          token: ${{ secrets.GITHUB_TOKEN }} # Use the default GITHUB_TOKEN
+          token: ${{ secrets.GITHUB_TOKEN }}
