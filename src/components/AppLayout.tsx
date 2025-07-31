@@ -17,8 +17,6 @@ import {
 } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { signOut } from 'firebase/auth';
-import { auth } from '../firebase-config';
 import logo from '../assets/logo.png';
 import PointOfSaleIcon from '@mui/icons-material/PointOfSale';
 import HistoryIcon from '@mui/icons-material/History';
@@ -27,7 +25,11 @@ import SyncAltIcon from '@mui/icons-material/SyncAlt';
 const drawerWidth = 240;
 
 export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user] = useAuthState(auth);
+  // const [user] = useAuthState(auth);
+  const user = {
+    displayName: 'John Doe',
+    photoURL: ''
+  }
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   
   // Hooks para la navegación
@@ -43,7 +45,6 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
   };
 
   const handleLogout = () => {
-    signOut(auth);
     handleClose();
   };
 

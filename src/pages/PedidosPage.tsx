@@ -24,22 +24,29 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete';
 import SendIcon from '@mui/icons-material/Send';
 import { CSVLink } from 'react-csv';
-import { clientesMock, productosMock, Cliente, Producto } from '../data/mocks';
-
-// Esta interfaz extiende la nueva definición de 'Producto' y le añade la cantidad
-interface PedidoProducto extends Producto {
-  cantidad: number;
-}
+import { productosMock} from '../data/mocks';
+import { Cliente, PedidoProducto, Producto } from '../api/types';
+import { getClients } from '../api/apiClient';
 
 const PedidosPage = () => {
   const [clienteSeleccionado, setClienteSeleccionado] = useState<Cliente | null>(null);
   const [productosDelPedido, setProductosDelPedido] = useState<PedidoProducto[]>([]);
+  const [listaClientes, setListaClientes] = useState<Cliente[]>([]);
+  
   const [fechaPedido, setFechaPedido] = useState('');
   const [notificacion, setNotificacion] = useState({
     open: false,
     message: '',
     severity: 'success' as 'success' | 'error',
   });
+
+
+  useEffect(() => {
+    getClients()
+      .then((clients) => setListaClientes(clients))
+      .catch((err) => console.error('Error fetching clients:', err));
+  }, []); // Empty dependency array ensures this runs only once
+
 
   useEffect(() => {
     setFechaPedido(new Date().toLocaleDateString('es-CO', {
@@ -103,7 +110,7 @@ const PedidosPage = () => {
           <Stack direction={{ xs: 'column', md: 'row' }} spacing={3}>
             <Box sx={{ width: { xs: '100%', md: '66.67%' } }}>
               <Autocomplete
-                options={clientesMock}
+                options={listaClientes}
                 getOptionLabel={(option) => `${option.razonSocial} - NIT: ${option.nit}`}
                 onChange={(_, value) => setClienteSeleccionado(value)}
                 renderInput={(params) => <TextField {...params} label="Buscar Cliente" />}

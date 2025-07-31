@@ -1,62 +1,39 @@
 // src/data/mocks.ts
 
-// 1. Actualiza la interface del Cliente
-export interface Cliente {
-  id: number;
-  nit: string;
-  razonSocial: string;
-  sucursal: string;
-  telefono: string;
-  direccion: string;
-  departamento: string;
-  ciudad: string;
-}
+import { Cliente, Pedido, Producto } from "../api/types";
 
-export interface Producto {
-  id: number;
-  codigo: string;
-  nombre: string;
-  familia: string;
-  grupo: string;
-  marca: string;
-  modelo: string;
-  stock: number;
-  precio: number;
-}
-
-
-export const clientesMock: Cliente[] = [
-  { 
-    id: 1, 
-    nit: '900.123.456-7', 
-    razonSocial: 'Cliente Alpha S.A.S.', 
-    sucursal: 'Principal',
-    telefono: '3101234567',
-    direccion: 'Calle Falsa 123',
-    departamento: 'Cundinamarca',
-    ciudad: 'Bogotá' 
-  },
-  { 
-    id: 2, 
-    nit: '800.789.123-4', 
-    razonSocial: 'Comercializadora Beta Ltda.', 
-    sucursal: 'Centro',
-    telefono: '3207891234',
-    direccion: 'Avenida Siempre Viva 742',
-    departamento: 'Antioquia',
-    ciudad: 'Medellín' 
-  },
-  { 
-    id: 3, 
-    nit: '901.456.789-0', 
-    razonSocial: 'Industrias Gamma', 
-    sucursal: 'Norte',
-    telefono: '3019876543',
-    direccion: 'Transversal 50 # 100-20',
-    departamento: 'Atlántico',
-    ciudad: 'Barranquilla' 
-  }, // <-- NODO AGREGADO
-];
+// export const clientesMock: Cliente[] = [
+//   { 
+//     id: 1, 
+//     nit: '900.123.456-7', 
+//     razonSocial: 'Cliente Alpha S.A.S.', 
+//     sucursal: 'Principal',
+//     telefono: '3101234567',
+//     direccion: 'Calle Falsa 123',
+//     departamento: 'Cundinamarca',
+//     ciudad: 'Bogotá' 
+//   },
+//   { 
+//     id: 2, 
+//     nit: '800.789.123-4', 
+//     razonSocial: 'Comercializadora Beta Ltda.', 
+//     sucursal: 'Centro',
+//     telefono: '3207891234',
+//     direccion: 'Avenida Siempre Viva 742',
+//     departamento: 'Antioquia',
+//     ciudad: 'Medellín' 
+//   },
+//   { 
+//     id: 3, 
+//     nit: '901.456.789-0', 
+//     razonSocial: 'Industrias Gamma', 
+//     sucursal: 'Norte',
+//     telefono: '3019876543',
+//     direccion: 'Transversal 50 # 100-20',
+//     departamento: 'Atlántico',
+//     ciudad: 'Barranquilla' 
+//   }, // <-- NODO AGREGADO
+// ];
 
 export const productosMock: Producto[] = [
   { 
@@ -108,13 +85,7 @@ export const productosMock: Producto[] = [
 // ... (al final del archivo, después de productosMock)
 
 // 1. Define la nueva interfaz para los Pedidos
-export interface Pedido {
-  id: string;
-  fecha: string; // Usaremos formato ISO "YYYY-MM-DD" para facilitar el filtrado
-  cliente: string;
-  total: number;
-  estado: 'Entregado' | 'Enviado' | 'Cancelado';
-}
+
 
 // 2. Agrega los datos de ejemplo
 export const pedidosMock: Pedido[] = [
@@ -126,11 +97,7 @@ export const pedidosMock: Pedido[] = [
 ];
 
 // 1. Define la nueva interfaz para las Transacciones
-export interface Transaccion {
-  id: string; // Corresponde al número del pedido
-  fecha: string; // Formato "YYYY-MM-DD"
-  estado: 'Procesado' | 'Error' | 'Pendiente';
-}
+
 
 // 2. Agrega los datos de ejemplo
 export const transaccionesMock: Transaccion[] = [
