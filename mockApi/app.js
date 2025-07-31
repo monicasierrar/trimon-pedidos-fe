@@ -6,9 +6,7 @@ const port = 3000; // You can choose any available port
 
 // Middleware to parse JSON request bodies
 app.use(express.json());
-app.use(cors({
-  origin: 'http://localhost:5173', // Replace with the actual URL of the app on port 3002
-}));
+app.use(cors());
 
 
 // Route 1: A simple GET request
@@ -54,18 +52,6 @@ app.get('/clientes', (req, res) => {
     })
 })
 
-// Route 2: A GET request with a dynamic parameter
-app.get('/users/:id', (req, res) => {
-    const userId = req.params.id;
-    res.json({ message: `You requested user with ID: ${userId}` });
-});
-
-// Route 3: A POST request example
-app.post('/data', (req, res) => {
-    const receivedData = req.body;
-    console.log('Received data:', receivedData);
-    res.json({ message: 'Data received successfully!', data: receivedData });
-});
 
 // Start the server
 app.listen(port, () => {

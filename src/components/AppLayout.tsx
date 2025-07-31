@@ -16,7 +16,6 @@ import {
   Divider,
 } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuthState } from 'react-firebase-hooks/auth';
 import logo from '../assets/logo.png';
 import PointOfSaleIcon from '@mui/icons-material/PointOfSale';
 import HistoryIcon from '@mui/icons-material/History';

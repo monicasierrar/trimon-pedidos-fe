@@ -1,14 +1,14 @@
 import axios, { AxiosResponse } from "axios";
 import { Cliente } from "./types";
 
-const API_BASE_URL = "http://localhost:3000"
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 const CLIENTS_ENDPOINT = "/clientes"
 const PRODUCTS_ENDPOINT = "/productos"
 const ORDERS_ENDPOINT = "/pedidos"
 
 
 export const getClients = async (): Promise<Cliente[]> => {
-    return getData(CLIENTS_ENDPOINT).then(result => result.clients)
+    return getData(CLIENTS_ENDPOINT).then(result => result.clientes)
         .catch(err => console.log("error fetching clients ", err))
 }
 
