@@ -28,6 +28,7 @@ const drawerWidth = 240;
 
 export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user] = useAuthState(auth);
+
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   
   // Hooks para la navegación
