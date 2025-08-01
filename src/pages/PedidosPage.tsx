@@ -24,14 +24,14 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete';
 import SendIcon from '@mui/icons-material/Send';
 import { CSVLink } from 'react-csv';
-import { productosMock} from '../data/mocks';
 import { Cliente, PedidoProducto, Producto } from '../api/types';
-import { getClients } from '../api/apiClient';
+import { getClients, getProducts } from '../api/apiClient';
 
 const PedidosPage = () => {
   const [clienteSeleccionado, setClienteSeleccionado] = useState<Cliente | null>(null);
   const [productosDelPedido, setProductosDelPedido] = useState<PedidoProducto[]>([]);
   const [listaClientes, setListaClientes] = useState<Cliente[]>([]);
+  const [listaProductos, setListaProductos] = useState<Producto[]>([]);
   
   const [fechaPedido, setFechaPedido] = useState('');
   const [notificacion, setNotificacion] = useState({
@@ -45,6 +45,9 @@ const PedidosPage = () => {
     getClients()
       .then((clients) => setListaClientes(clients))
       .catch((err) => console.error('Error fetching clients:', err));
+    getProducts()
+      .then((productos) => setListaProductos(productos))
+      .catch((err) => console.error('Error fetching products:', err));
   }, []); // Empty dependency array ensures this runs only once
 
 
@@ -150,7 +153,7 @@ const PedidosPage = () => {
           <Divider />
 
           <Autocomplete
-            options={productosMock}
+            options={listaProductos}
             // 1. Muestra solo el nombre cuando un producto es seleccionado
             getOptionLabel={(option) => option.nombre}
   
