@@ -52,6 +52,58 @@ app.get('/clientes', (req, res) => {
     })
 })
 
+app.get('/productos', (req, res) => {
+    const productos = [
+        {
+            id: 201, 
+            codigo: 'FR-BOS-01',
+            nombre: 'Pastillas de Freno Delanteras', 
+            familia: 'Sistema de Frenos', 
+            grupo: 'Componentes de Fricción', 
+            marca: 'Bosch', 
+            modelo: 'Ceramic Pro', 
+            stock: 45, 
+            precio: 180000
+        },
+        {
+            id: 202, 
+            codigo: 'FL-ACD-02',
+            nombre: 'Filtro de Aceite', 
+            familia: 'Motor', 
+            grupo: 'Filtros', 
+            marca: 'ACDelco', 
+            modelo: 'PF47', 
+            stock: 120, 
+            precio: 35000
+        },
+        {
+            id: 203, 
+            codigo: 'SP-NGK-03',
+            nombre: 'Bujía de Iridio', 
+            familia: 'Motor', 
+            grupo: 'Sistema de Encendido', 
+            marca: 'NGK', 
+            modelo: 'Laser Iridium', 
+            stock: 250, 
+            precio: 45000
+        },
+        {
+            id: 204, 
+            codigo: 'AM-GAB-04',
+            nombre: 'Amortiguador Trasero', 
+            familia: 'Suspensión', 
+            grupo: 'Amortiguadores', 
+            marca: 'Gabriel', 
+            modelo: 'Gas Ryder', 
+            stock: 30, 
+            precio: 220000
+        },
+    ]
+    return res.json({
+        productos
+    })
+})
+
 
 // Start the server
 app.listen(port, () => {
