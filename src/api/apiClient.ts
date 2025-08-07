@@ -6,16 +6,16 @@ import { Producto } from "./types";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 const CLIENTS_ENDPOINT = "/clientes"
 const PRODUCTS_ENDPOINT = "/productos"
-const ORDERS_ENDPOINT = "/pedidos"
+// const ORDERS_ENDPOINT = "/pedidos"
 
 
 export const getClients = async (): Promise<Cliente[]> => {
-    return getData(CLIENTS_ENDPOINT).then(result => result.clientes)
+    return getData(CLIENTS_ENDPOINT).then(result => result[0].clientes)
         .catch(err => console.log("error fetching clients ", err))
 }
 
 export const getProducts = async (): Promise<Producto[]> => {
-    return getData(PRODUCTS_ENDPOINT).then(result => result.productos)
+    return getData(PRODUCTS_ENDPOINT).then(result => result[0].productos)
         .catch(err => console.log("error fetching products ", err))
 }
 
