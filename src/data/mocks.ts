@@ -1,6 +1,6 @@
 // src/data/mocks.ts
 
-import { Cliente, Pedido, Producto } from "../api/types";
+import {Pedido, Producto, Transaccion } from "../api/types";
 
 // export const clientesMock: Cliente[] = [
 //   { 

@@ -16,9 +16,8 @@ import {
   Divider,
 } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuthState } from 'react-firebase-hooks/auth';
-import { signOut } from 'firebase/auth';
-import { auth } from '../firebase-config';
+// Se han eliminado las importaciones de Firebase: useAuthState, signOut, auth
+
 import logo from '../assets/logo.png';
 import PointOfSaleIcon from '@mui/icons-material/PointOfSale';
 import HistoryIcon from '@mui/icons-material/History';
@@ -27,11 +26,14 @@ import SyncAltIcon from '@mui/icons-material/SyncAlt';
 const drawerWidth = 240;
 
 export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user] = useAuthState(auth);
+  // En lugar de useAuthState, ahora verificamos si existe el token de sesión
+  const sessionToken = localStorage.getItem('session_token');
+  // Suponemos que también guardaremos datos del usuario en localStorage después del login
+  const userName = localStorage.getItem('user_name');
+  const userAvatar = localStorage.getItem('user_avatar');
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   
-  // Hooks para la navegación
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -43,9 +45,13 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
     setAnchorEl(null);
   };
 
+  // La nueva función de Logout
   const handleLogout = () => {
-    signOut(auth);
+    localStorage.removeItem('session_token');
+    localStorage.removeItem('user_name');
+    localStorage.removeItem('user_avatar');
     handleClose();
+    navigate('/'); // Redirigir a la página de inicio
   };
 
   return (
@@ -56,10 +62,12 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
             Gestión de Pedidos
           </Typography>
-          {user && (
+          {/* La condición ahora se basa en la existencia del token de sesión */}
+          {sessionToken && (
             <div>
               <IconButton onClick={handleMenu} sx={{ p: 0 }}>
-                <Avatar alt={user.displayName || ''} src={user.photoURL || ''} />
+                {/* Usamos los datos del usuario guardados en localStorage */}
+                <Avatar alt={userName || ''} src={userAvatar || ''} />
               </IconButton>
               <Menu
                 anchorEl={anchorEl}
@@ -70,7 +78,8 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
                 sx={{ mt: '45px' }}
               >
                 <MenuItem disabled>
-                  <Typography variant="body1">{user.displayName}</Typography>
+                  {/* Mostramos el nombre guardado */}
+                  <Typography variant="body1">{userName}</Typography>
                 </MenuItem>
                 <Divider />
                 <MenuItem onClick={handleLogout}>Cerrar Sesión</MenuItem>
@@ -90,7 +99,6 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
         <Toolbar />
         <Box sx={{ overflow: 'auto' }}>
           <List>
-            {/* Menú de Pedidos */}
             <ListItemButton selected={location.pathname === '/'} onClick={() => navigate('/')}>
               <ListItemIcon>
                 <PointOfSaleIcon />
@@ -98,7 +106,6 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
               <ListItemText primary="Pedidos" />
             </ListItemButton>
             
-            {/* Menú de Historial */}
             <ListItemButton selected={location.pathname === '/historial'} onClick={() => navigate('/historial')}>
               <ListItemIcon>
                 <HistoryIcon />
@@ -106,7 +113,6 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
               <ListItemText primary="Historial" />
             </ListItemButton>
             
-            {/* 2. Añade el nuevo botón para el Log de Transacciones */}
             <ListItemButton selected={location.pathname === '/log-transacciones'} onClick={() => navigate('/log-transacciones')}>
               <ListItemIcon><SyncAltIcon /></ListItemIcon>
               <ListItemText primary="Log de Transacciones" />

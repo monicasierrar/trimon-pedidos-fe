@@ -5,7 +5,7 @@ const TestLogin = () => {
   const handleLogin = () => {
     // 👇 Valores escritos directamente para la prueba
     const ZOHO_CLIENT_ID = "1000.YDX393WYYABTM7B0VFM2THUAZLAJVE";
-    const REDIRECT_URI = "https://cd3d17f6cf6b.ngrok-free.app/auth/callback"; // 🚨 REEMPLAZA ESTO
+    const REDIRECT_URI = "https://d3571srsk1pdk5.cloudfront.net/auth/callback"; // 🚨 REEMPLAZA ESTO
 
     const SCOPES = 'aaaserver.profile.READ,ZohoMail.accounts.READ';
     const zohoAuthUrl = `https://accounts.zoho.com/oauth/v2/auth?scope=${SCOPES}&client_id=${ZOHO_CLIENT_ID}&response_type=code&access_type=offline&redirect_uri=${REDIRECT_URI}`;
