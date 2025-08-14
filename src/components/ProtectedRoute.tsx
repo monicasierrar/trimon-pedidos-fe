@@ -8,7 +8,7 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const sessionToken = localStorage.getItem('session_token');
+  const sessionToken = localStorage.getItem('accessToken');
 
   if (!sessionToken) {
     // ✅ CORRECCIÓN: Si no hay token, redirigimos a la página de login.

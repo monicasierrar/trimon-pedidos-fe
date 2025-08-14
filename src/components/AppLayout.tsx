@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   AppBar,
   Toolbar,
@@ -22,16 +22,23 @@ import logo from '../assets/logo.png';
 import PointOfSaleIcon from '@mui/icons-material/PointOfSale';
 import HistoryIcon from '@mui/icons-material/History';
 import SyncAltIcon from '@mui/icons-material/SyncAlt'; 
+import { getUserInfo } from './AppLayout.funcs';
 
 const drawerWidth = 240;
 
+interface UserInfo {
+  firstName: string,
+  lastName: string,
+  displayName: string,
+  email: string,
+  avatar?: string,
+}
+
 export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // En lugar de useAuthState, ahora verificamos si existe el token de sesión
-  const sessionToken = localStorage.getItem('session_token');
+  const sessionToken = localStorage.getItem('accessToken');
   // Suponemos que también guardaremos datos del usuario en localStorage después del login
-  const userName = localStorage.getItem('user_name');
-  const userAvatar = localStorage.getItem('user_avatar');
-
+  const [user, setUser] =  useState<UserInfo | null>(null);
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   
   const navigate = useNavigate();
@@ -41,15 +48,19 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
     setAnchorEl(event.currentTarget);
   };
 
+  useEffect(() => {
+    getUserInfo().then(userInfo => {
+      setUser(userInfo);
+    })
+  }, [sessionToken])
+
   const handleClose = () => {
     setAnchorEl(null);
   };
 
   // La nueva función de Logout
   const handleLogout = () => {
-    localStorage.removeItem('session_token');
-    localStorage.removeItem('user_name');
-    localStorage.removeItem('user_avatar');
+    localStorage.removeItem('accessToken');
     handleClose();
     navigate('/'); // Redirigir a la página de inicio
   };
@@ -67,7 +78,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
             <div>
               <IconButton onClick={handleMenu} sx={{ p: 0 }}>
                 {/* Usamos los datos del usuario guardados en localStorage */}
-                <Avatar alt={userName || ''} src={userAvatar || ''} />
+                <Avatar alt={user?.displayName || ''} src={user?.avatar || ''} />
               </IconButton>
               <Menu
                 anchorEl={anchorEl}
@@ -79,7 +90,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
               >
                 <MenuItem disabled>
                   {/* Mostramos el nombre guardado */}
-                  <Typography variant="body1">{userName}</Typography>
+                  <Typography variant="body1">{user?.displayName}</Typography>
                 </MenuItem>
                 <Divider />
                 <MenuItem onClick={handleLogout}>Cerrar Sesión</MenuItem>
