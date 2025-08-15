@@ -3,11 +3,11 @@ import axios from 'axios'
 export const getUserInfo = async () => {
     try {
         const url = `${import.meta.env.VITE_API_BASE_URL}/user-info`
-        console.log("token", localStorage.getItem('accessToken'))
+        const token = localStorage.getItem('accessToken')
         const response = await axios.get(url, {
             headers: {
                 // The Authorization header should be 'Zoho-oauthtoken <your_access_token>'
-                'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+                'Authorization': `Bearer ${token}`
             }
         });
 

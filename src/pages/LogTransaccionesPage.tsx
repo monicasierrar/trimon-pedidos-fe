@@ -15,7 +15,8 @@ import {
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { Dayjs } from 'dayjs';
-import { transaccionesMock, Transaccion } from '../data/mocks';
+import { transaccionesMock } from '../data/mocks';
+import { Transaccion } from '../api/types';
 
 const LogTransaccionesPage = () => {
   const [fechaInicio, setFechaInicio] = useState<Dayjs | null>(null);
