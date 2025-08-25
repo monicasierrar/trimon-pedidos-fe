@@ -1,38 +1,25 @@
 // src/components/ProtectedRoute.tsx
+
 import React from 'react';
-// Asumiendo que usas react-firebase-hooks para manejar el estado de auth de forma sencilla
-import { useAuthState } from 'react-firebase-hooks/auth';
-import { Navigate } from 'react-router-dom'; // Asegúrate de que esta ruta a tu config de firebase sea correcta
-import { auth } from '../firebase-config';
-import { CircularProgress, Box } from '@mui/material';
+import { Navigate } from 'react-router-dom';
+import { USE_AUTH } from '../config'; // 🚩 Cambio: importamos la bandera
 
 interface ProtectedRouteProps {
   children: React.ReactElement;
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  // useAuthState verifica el estado de autenticación con Firebase
-  const [user, loading, error] = useAuthState(auth);
-  
-  if (loading) {
-    // Muestra un spinner mientras Firebase verifica la sesión
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
-        <CircularProgress />
-      </Box>
-    );
+  // 🚩 Cambio: si USE_AUTH = false, devolvemos siempre el contenido sin validar
+  if (!USE_AUTH) {
+    return children;
   }
 
-  if (error) {
-    console.error("Error de autenticación:", error);
+  // 🚩 Cambio: si USE_AUTH = true, mantenemos la lógica original
+  const sessionToken = localStorage.getItem('session_token');
+
+  if (!sessionToken) {
     return <Navigate to="/login" />;
   }
 
-  if (!user) {
-    // Si no hay usuario logueado, redirige a /login
-    return <Navigate to="/login" />;
-  }
-
-  // Si el usuario está logueado, muestra el componente hijo (PedidosPage)
   return children;
 };

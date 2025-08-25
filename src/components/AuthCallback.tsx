@@ -1,60 +1,71 @@
-// src/components/AuthCallback.tsx
-
-import  { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { Box, CircularProgress, Typography } from '@mui/material';
+import axios from 'axios'; // Import axios
 
 const AuthCallback = () => {
-  const [message, setMessage] = useState('Autenticando...');
   const location = useLocation();
   const navigate = useNavigate();
 
   useEffect(() => {
-    // 1. Extrae el código de la URL que nos envía Zoho
-    const queryParams = new URLSearchParams(location.search);
-    const code = queryParams.get('code');
+    const exchangeCodeForTokens = async (code:string) => {
+      try {
+        const clientId = import.meta.env.VITE_ZOHO_CLIENT_ID;
+        const redirectUri = import.meta.env.VITE_ZOHO_REDIRECT_URI;
+        const tokenUrl = import.meta.env.VITE_ZOHO_TOKEN_URL;
+
+        const params = new URLSearchParams();
+        params.append('grant_type', 'authorization_code');
+        params.append('client_id', clientId);
+        params.append('redirect_uri', redirectUri);
+        params.append('code', code);
+
+        const response = await axios.post(tokenUrl, params, {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+        });
+
+        const { access_token, refresh_token, expires_in } = response.data;
+
+        // Store tokens in local storage
+        localStorage.setItem('accessToken', access_token);
+        localStorage.setItem('refreshToken', refresh_token);
+        localStorage.setItem('expiresAt', `${Date.now() + expires_in * 1000}`);
+
+        console.log('Tokens stored successfully:', { access_token, refresh_token, expires_in });
+
+        // Redirect the user to the main app page
+        navigate('/');
+      } catch (error: unknown) {
+        // Check if the error is an AxiosError
+        if (axios.isAxiosError(error)) {
+          // It's an Axios error, you can safely access its properties
+          console.error('Axios Error:', error.message);
+
+          // You can also check if there's a response from the server
+          if (error.response) {
+            console.error('Status:', error.response.status);
+            console.error('Data:', error.response.data);
+          }
+        } else {
+          // It's a different kind of error (e.g., network error, a different promise rejection)
+          console.error('An unexpected error occurred:', error);
+        }
+      }
+    };
+
+    const urlParams = new URLSearchParams(location.search);
+    const code = urlParams.get('code');
 
     if (code) {
-      // 2. Envía el código a tu webhook de n8n para validarlo
-      const n8nWebhookUrl = 'TU_WEBHOOK_URL_DE_N8N'; // 🚨 ¡IMPORTANTE: Reemplaza esto!
-      
-      axios.post(n8nWebhookUrl, { code })
-        .then(response => {
-          console.log("Response from api " + response)
-          // 3. Si la validación es exitosa, guarda la información y redirige
-          // Aquí guardarías el token de sesión, por ejemplo, en localStorage
-          // localStorage.setItem('userToken', response.data.token);
-
-          // Redirige al usuario al panel principal
-          navigate('/');
-        })
-        .catch(error => {
-          console.error('Error de autenticación:', error);
-          setMessage('Falló la autenticación. Por favor, intenta de nuevo.');
-          // Opcional: redirigir de vuelta al login después de unos segundos
-          setTimeout(() => navigate('/login'), 3000);
-        });
+      exchangeCodeForTokens(code);
     } else {
-      setMessage('No se encontró el código de autorización.');
-      setTimeout(() => navigate('/login'), 3000);
+      console.error('No authorization code found in URL.');
+      navigate('/login');
     }
   }, [location, navigate]);
 
-  return (
-    <Box
-      display="flex"
-      flexDirection="column"
-      justifyContent="center"
-      alignItems="center"
-      minHeight="80vh"
-    >
-      <CircularProgress />
-      <Typography variant="h6" sx={{ mt: 2 }}>
-        {message}
-      </Typography>
-    </Box>
-  );
+  return <div>Loading...</div>;
 };
 
 export default AuthCallback;

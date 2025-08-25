@@ -40,7 +40,6 @@ const PedidosPage = () => {
     severity: 'success' as 'success' | 'error',
   });
 
-
   useEffect(() => {
     getClients()
       .then((clients) => setListaClientes(clients))
@@ -48,8 +47,7 @@ const PedidosPage = () => {
     getProducts()
       .then((productos) => setListaProductos(productos))
       .catch((err) => console.error('Error fetching products:', err));
-  }, []); // Empty dependency array ensures this runs only once
-
+  }, []);
 
   useEffect(() => {
     setFechaPedido(new Date().toLocaleDateString('es-CO', {
@@ -76,17 +74,124 @@ const PedidosPage = () => {
     setProductosDelPedido(productosDelPedido.filter(p => p.id !== id));
   };
 
-  const handleEnviarPedido = () => {
-    console.log("Enviando pedido:", {
-      cliente: clienteSeleccionado,
-      productos: productosDelPedido,
-      total: totalPedido,
-      fecha: new Date().toISOString(),
-    });
-    setNotificacion({ open: true, message: '¡Pedido enviado con éxito!', severity: 'success' });
+  const subtotalPedido = productosDelPedido.reduce((total, p) => total + p.precio * p.cantidad, 0);
+  const ivaTotal = subtotalPedido * 0.19;
+  const totalPedido = subtotalPedido + ivaTotal;
+
+  // ✅ Función para descargar JSON
+  const downloadJson = (data: object, filename: string) => {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
-  const totalPedido = productosDelPedido.reduce((total, p) => total + p.precio * p.cantidad, 0);
+  // ✅ Nueva función para armar y descargar el JSON con la estructura solicitada
+  const handleEnviarPedido = () => {
+    const fechaHoy = new Date().toISOString().split("T")[0];
+    const numeroPedido = Date.now();
+
+    const pedidoJson = {
+      anulado: "N",
+      comentarios: "Pedido generado desde la app",
+      descuento: 0,
+      fecha: fechaHoy,
+      fentrega: fechaHoy,
+      idsuc: 1,
+      idvendedor: 1,
+      iva: ivaTotal,
+      nit: clienteSeleccionado?.nit || "",
+      numero: numeroPedido,
+      ordencompra: `ORD-${numeroPedido}`,
+      prefijo: "PE",
+      retefuente: 0,
+      reteica: 0,
+      reteiva: 0,
+      subtotal: subtotalPedido,
+      //sucursal: 0,
+      total: totalPedido,
+      usuario: "ERP",
+      totalDet: productosDelPedido.length,
+      totalImp: 1,
+      totalPag: 1,
+      detalle: productosDelPedido.map((p, idx) => {
+        const subtotalProd = p.precio * p.cantidad;
+        const ivaProd = subtotalProd * 0.19;
+        return {
+          cantidad: p.cantidad,
+          codimp: "IVA01",
+          costo: 0,
+          dcto_fam: 0,
+          dcto_vol: 0,
+          descuento: 0,
+          factor: 1,
+          idbodega: "19",
+          idproducto: p.codigo,
+          idunidad: "Und",
+          iva: ivaProd,
+          neto: subtotalProd + ivaProd,
+          operacion: "SA",
+          porcdcto: 0,
+          porciva: 19,
+          pos: idx + 1,
+          precio: p.precio,
+          subtotal: subtotalProd,
+          unidades: p.cantidad,
+          valorbruto: subtotalProd,
+          vdescuento: 0
+        };
+      }),
+      impuesto: [
+        {
+          base_calculo: subtotalPedido,
+          codimp: "IVA01",
+          liquida: "S",
+          valor: ivaTotal
+        }
+      ],
+      pago: [
+        {
+          idformapago: 1,
+          fvence: fechaHoy,
+          valor: totalPedido,
+          plazo: 1,
+          ref_doc: "PE"
+        }
+      ],
+      sucursal: {
+        ciudad: clienteSeleccionado?.ciudad || "",
+        departamento: clienteSeleccionado?.departamento || "",
+        direccion1: clienteSeleccionado?.direccion || "",
+        razonsocial: clienteSeleccionado?.razonSocial || "",
+        telefono1: clienteSeleccionado?.telefono || "",
+        idvendedor: 1
+      },
+      tercero: {
+        nit: clienteSeleccionado?.nit || "",
+        razonsocial: clienteSeleccionado?.razonSocial || "",
+        tdoc: 31,
+        tipopersona: "J",
+        escliente: "S",
+        usuario: "ERP"
+      }
+    };
+
+    console.log("🚩 Pedido JSON generado:", pedidoJson);
+
+    downloadJson(
+      pedidoJson,
+      `pedido-${clienteSeleccionado?.nit || "cliente"}-${numeroPedido}.json`
+    );
+
+    setNotificacion({
+      open: true,
+      message: '¡Pedido armado y descargado en JSON con éxito!',
+      severity: 'success',
+    });
+  };
 
   const csvHeaders = [
     { label: "Pedido ID", key: "pedidoId" },
@@ -154,31 +259,27 @@ const PedidosPage = () => {
 
           <Autocomplete
             options={listaProductos}
-            // 1. Muestra solo el nombre cuando un producto es seleccionado
             getOptionLabel={(option) => option.nombre}
-  
-            // 2. Renderiza una vista personalizada para cada opción en la lista
             renderOption={(props, option) => (
-            <Box component="li" sx={{ '& > img': { mr: 2, flexShrink: 0 } }} {...props}>
-              <Box>
-                <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
-                  {option.nombre} - {option.marca}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Código: {option.codigo} | Modelo: {option.modelo}
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  Familia: {option.familia} | Grupo: {option.grupo}
-                </Typography>
-                <Typography variant="body2" color="primary" sx={{ fontWeight: 'medium', mt: 1 }}>
-                  Stock: {option.stock} | Precio: {option.precio.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}
-                </Typography>
+              <Box component="li" sx={{ '& > img': { mr: 2, flexShrink: 0 } }} {...props}>
+                <Box>
+                  <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+                    {option.nombre} - {option.marca}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Código: {option.codigo} | Modelo: {option.modelo}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    Familia: {option.familia} | Grupo: {option.grupo}
+                  </Typography>
+                  <Typography variant="body2" color="primary" sx={{ fontWeight: 'medium', mt: 1 }}>
+                    Stock: {option.stock} | Precio: {option.precio.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}
+                  </Typography>
+                </Box>
               </Box>
-            </Box>
-          )}
-  
-  onChange={(_, value) => handleAddProducto(value)}
-  renderInput={(params) => <TextField {...params} label="Agregar Producto al Pedido" />}
+            )}
+            onChange={(_, value) => handleAddProducto(value)}
+            renderInput={(params) => <TextField {...params} label="Agregar Producto al Pedido" />}
             disabled={!clienteSeleccionado}
           />
 
@@ -224,12 +325,28 @@ const PedidosPage = () => {
                     </TableRow>
                   ))
                 )}
+
+                {/* Totales */}
                 {productosDelPedido.length > 0 && (
-                   <TableRow sx={{ '& > td': { border: 0 } }}>
+                  <>
+                    <TableRow sx={{ '& > td': { border: 0 } }}>
+                      <TableCell colSpan={3} />
+                      <TableCell align="right"><Typography variant="h6">SUBTOTAL:</Typography></TableCell>
+                      <TableCell align="right"><Typography variant="h6">{subtotalPedido.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}</Typography></TableCell>
+                    </TableRow>
+
+                    <TableRow sx={{ '& > td': { border: 0 } }}>
+                      <TableCell colSpan={3} />
+                      <TableCell align="right"><Typography variant="h6">IVA (19%):</Typography></TableCell>
+                      <TableCell align="right"><Typography variant="h6">{ivaTotal.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}</Typography></TableCell>
+                    </TableRow>
+
+                    <TableRow sx={{ '& > td': { border: 0 } }}>
                       <TableCell colSpan={3} />
                       <TableCell align="right"><Typography variant="h6">TOTAL:</Typography></TableCell>
                       <TableCell align="right"><Typography variant="h6">{totalPedido.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}</Typography></TableCell>
                     </TableRow>
+                  </>
                 )}
               </TableBody>
             </Table>
@@ -237,17 +354,17 @@ const PedidosPage = () => {
 
           <Stack direction="row" justifyContent="flex-end" spacing={2}>
             <CSVLink
-                data={csvData}
-                headers={csvHeaders}
-                filename={`pedido-${clienteSeleccionado?.nit || ''}-${Date.now()}.csv`}
-                style={{ textDecoration: 'none' }}
+              data={csvData}
+              headers={csvHeaders}
+              filename={`pedido-${clienteSeleccionado?.nit || ''}-${Date.now()}.csv`}
+              style={{ textDecoration: 'none' }}
             >
-                <Button 
-                    variant="outlined"
-                    disabled={productosDelPedido.length === 0 || !clienteSeleccionado}
-                >
-                    Exportar a CSV
-                </Button>
+              <Button 
+                variant="outlined"
+                disabled={productosDelPedido.length === 0 || !clienteSeleccionado}
+              >
+                Exportar a CSV
+              </Button>
             </CSVLink>
             <Button
               variant="contained"
