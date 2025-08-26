@@ -41,10 +41,10 @@ const PedidosPage = () => {
   });
 
   useEffect(() => {
-    getClients()
+    getClients(localStorage.getItem('session_token') || '')
       .then((clients) => setListaClientes(clients))
       .catch((err) => console.error('Error fetching clients:', err));
-    getProducts()
+    getProducts(localStorage.getItem('session_token') || '')
       .then((productos) => setListaProductos(productos))
       .catch((err) => console.error('Error fetching products:', err));
   }, []);
