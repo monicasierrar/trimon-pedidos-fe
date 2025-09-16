@@ -1,0 +1,976 @@
+{
+  "name": "PedidosBE",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "https://ws.dsnube.co/api/v1/consultasql?consulta=select nit, razonsocial, idsuc sucursal, telefono1, direccion1, departamento, ciudad  from matercerosuc order by razonsocial",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        448,
+        256
+      ],
+      "id": "a51b0ec4-cbed-4c38-8aaa-37b8409c230e",
+      "name": "GET Clients",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "ug2MoKJnyyIweDUI",
+          "name": "ERP Credentials"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1168,
+        528
+      ],
+      "id": "7c3f94d5-4586-42c3-896b-689236c5819d",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ws.dsnube.co/api/v1/pec",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        688,
+        944
+      ],
+      "id": "548574e4-c92e-462f-9737-934e07b68645",
+      "name": "HTTP Request1",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "ug2MoKJnyyIweDUI",
+          "name": "ERP Credentials"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1168,
+        960
+      ],
+      "id": "6129d39c-e8fa-4028-b230-1cf0ab5749bf",
+      "name": "Respond to Webhook2"
+    },
+    {
+      "parameters": {
+        "url": "https://ws.dsnube.co/api/v1/consultasql?consulta=SELECT SP.IDPRODUCTO \"Código\",   maproductos.NOMBREPRODUCTO \"Producto\", Familia, Grupo, Marca, Modelo,   SP.DISPONIBLE \"Disponible\", maproductos.lista1 \"Precio\" FROM SPSALDOSINVENTARIO (CURRENT_DATE,'N','','','S','JCORTES') SP INNER JOIN maproductos ON (SP.idproducto = maproductos.idproducto) INNER JOIN vpareto_producto ON (SP.idproducto = vpareto_producto.idproducto) WHERE (SP.SALDO > 0) ORDER BY 1,2 ;",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        544,
+        576
+      ],
+      "id": "b0a66109-cd20-4ea6-863c-4e969f0d497e",
+      "name": "GET Products",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "ug2MoKJnyyIweDUI",
+          "name": "ERP Credentials"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nconst productos = $input.first().json.result.map(producto => ({\n  nombre: producto.Producto,\n  codigo: producto['Código'],\n  modelo: producto.modelo,\n  familia: producto.familia,\n  grupo: producto.grupo,\n  stock: producto.Disponible,\n  precio: producto.Precio\n}))\n\nreturn { productos };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        768,
+        544
+      ],
+      "id": "3a37b2ca-5d04-4281-9964-327a4fdef836",
+      "name": "Mapear productos"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "pedidos",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "https://pedidos.trimon.co"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        128,
+        976
+      ],
+      "id": "21b8a15d-5ea5-41ae-92f0-434046692494",
+      "name": "Crear pedidos",
+      "webhookId": "00958641-1a59-4695-a096-4069faab6d20"
+    },
+    {
+      "parameters": {
+        "path": "productos",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "https://pedidos.trimon.co"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        128,
+        656
+      ],
+      "id": "80376035-3f99-440e-9052-553cbc58520b",
+      "name": "Buscar productos",
+      "webhookId": "c9add605-8856-4d65-9969-34adf3358f03"
+    },
+    {
+      "parameters": {
+        "path": "clientes",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "https://pedidos.trimon.co"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        160,
+        256
+      ],
+      "id": "8cd84409-ce22-4666-a5de-efefabcc92a0",
+      "name": "Buscar clientes",
+      "webhookId": "1ffe87e5-983a-4e62-9c70-fe4656c9e5e8"
+    },
+    {
+      "parameters": {
+        "jsCode": "const clientes = $input.first().json.result.map(cliente => ({\n  nit: cliente.nit,\n  razonSocial:cliente.razonsocial,\n  sucursal: cliente.sucursal,\n  telefono: cliente.telefono1,\n  departamento: cliente.departamento,\n  direccion: cliente.direccion1\n}))\n\nreturn {\n  clientes\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        688,
+        256
+      ],
+      "id": "5ee06c4c-f018-4378-a601-25b14b1df2de",
+      "name": "Mapear clientes"
+    },
+    {
+      "parameters": {
+        "httpMethod": "=OPTIONS",
+        "path": "clientes",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "https://pedidos.trimon.co"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        160,
+        112
+      ],
+      "id": "aed486f3-699a-42bf-ac29-85c7e0734681",
+      "name": "Buscar clientes1",
+      "webhookId": "60c2fb02-9ead-45d5-b6b5-41854fbc9f16",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst code = $input.first().json.query.code\nreturn { code, redirectUrl: \"https://pedidos-api.trimon.co/webhook/authorize\" };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        384,
+        1744
+      ],
+      "id": "97662538-a8d2-49a5-a1aa-f7f35d4bf7ae",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "aadb05bb-87cc-4dad-a992-4bcbc819e0ab",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        960,
+        1616
+      ],
+      "id": "83c4df0a-6fdb-4cd6-be00-2221b5fb45e2",
+      "name": "error"
+    },
+    {
+      "parameters": {
+        "jsCode": "const accessToken = $input.first().json.access_token;\nconst expiresIn = $input.first().json.expires_in;\n\nreturn { accessToken, expiresIn }"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1312,
+        1776
+      ],
+      "id": "7a2610fc-58db-4149-b55b-4fe416224354",
+      "name": "Code1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const error = $input.first().json.error\nreturn { error };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1440,
+        1552
+      ],
+      "id": "2b908493-91b3-451f-bb25-fd0cc2c8e5b2",
+      "name": "Code3"
+    },
+    {
+      "parameters": {
+        "path": "authorize",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "https://pedidos.trimon.co"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -48,
+        1792
+      ],
+      "id": "7f713e60-3ecb-4812-844f-a7ae7c194672",
+      "name": "Authorize code",
+      "webhookId": "7f51ca0f-61c1-4a4c-99df-7b0e02ce7a6d"
+    },
+    {
+      "parameters": {
+        "httpMethod": "=OPTIONS",
+        "path": "authorize",
+        "responseMode": "lastNode",
+        "options": {
+          "allowedOrigins": "https://pedidos.trimon.co"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -48,
+        1632
+      ],
+      "id": "85f4ea17-c343-4a71-96cf-616106f47d94",
+      "name": "Authorize code options",
+      "webhookId": "7f51ca0f-61c1-4a4c-99df-7b0e02ce7a6d"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://accounts.zoho.com/oauth/v2/token",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "code",
+              "value": "={{ $json.code }}"
+            },
+            {
+              "name": "grant_type",
+              "value": "authorization_code"
+            },
+            {
+              "name": "client_id",
+              "value": "1000.5U8I460UG3WLLU85J5GLAKUDXLN9WZ"
+            },
+            {
+              "name": "client_secret",
+              "value": "45a9b1dfc9b716ff3912a2be813b9fb18440256f01"
+            },
+            {
+              "name": "redirect_uri",
+              "value": "={{ $json.redirectUrl }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        688,
+        1744
+      ],
+      "id": "9b1caa4e-160c-488a-b6ca-b012c9818214",
+      "name": "Get token"
+    },
+    {
+      "parameters": {
+        "jsCode": "\nreturn [\n  {\n    json: {\n      token: $input.first().json.headers['authorization'].substring(7, $input.first().json.headers['authorization'].length)\n    }\n  }\n]"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        592,
+        2160
+      ],
+      "id": "79e5f65d-54e1-46d4-b34c-b9808b613efd",
+      "name": "Code5"
+    },
+    {
+      "parameters": {
+        "path": "user-info",
+        "responseMode": "lastNode",
+        "options": {
+          "allowedOrigins": "https://pedidos.trimon.co"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        64,
+        2176
+      ],
+      "id": "3b729bc0-0f5b-4335-80a6-03e29d01a191",
+      "name": "User info",
+      "webhookId": "2e48a885-15c5-490a-95d8-30c5b3042c0e"
+    },
+    {
+      "parameters": {
+        "url": "https://accounts.zoho.com/oauth/user/info",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Zoho-oauthtoken {{ $json.token }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        928,
+        2192
+      ],
+      "id": "3ccfb70f-2c10-464f-8c82-336360f524e9",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "const { First_Name, Email, Last_Name, Display_Name } = $input.first().json\nreturn {\n  firstName: First_Name,\n  email: Email,\n  lastName: Last_Name,\n  displayName: Display_Name\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1264,
+        2208
+      ],
+      "id": "e14b9fe6-bf5f-48a6-b87d-77773c04b1e5",
+      "name": "Code6"
+    },
+    {
+      "parameters": {
+        "httpMethod": "=OPTIONS",
+        "path": "user-info",
+        "responseMode": "lastNode",
+        "options": {
+          "allowedOrigins": "https://pedidos.trimon.co"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        64,
+        2304
+      ],
+      "id": "31f78014-ec5d-457f-bfe2-b0b34dbd38e5",
+      "name": "User info options",
+      "webhookId": "2e48a885-15c5-490a-95d8-30c5b3042c0e"
+    },
+    {
+      "parameters": {
+        "httpMethod": "=OPTIONS",
+        "path": "productos",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "https://pedidos.trimon.co"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        128,
+        448
+      ],
+      "id": "d8b94c0f-704b-4e7f-aa39-2070f4be392a",
+      "name": "Buscar productos options",
+      "webhookId": "c9add605-8856-4d65-9969-34adf3358f03"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1008,
+        240
+      ],
+      "id": "5447056e-1791-43fd-a5ea-2c50f05bd3bb",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "httpMethod": "=OPTIONS",
+        "path": "pedidos",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "https://pedidos.trimon.co"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        144,
+        800
+      ],
+      "id": "c421b8f7-1655-4c19-80f0-394889ff6b01",
+      "name": "Crear pedidos1",
+      "webhookId": "00958641-1a59-4695-a096-4069faab6d20"
+    },
+    {
+      "parameters": {
+        "respondWith": "redirect",
+        "redirectURL": "=https://pedidos.trimon.co/auth/callback?access_token={{ $json.accessToken }}&expires_in={{ $json.expiresIn }}",
+        "options": {
+          "responseCode": 302
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1520,
+        1856
+      ],
+      "id": "d27b6edc-a105-4f64-ad89-5fb5fd1d91cc",
+      "name": "Respond to Webhook3"
+    },
+    {
+      "parameters": {
+        "respondWith": "redirect",
+        "redirectURL": "https://pedidos.trimon.co",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1616,
+        1504
+      ],
+      "id": "daa45960-9555-40a3-9929-7aa00beff2a5",
+      "name": "Respond to Webhook4"
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst code = $input.first().json.query.code\nreturn { code, redirectUrl: \"https://pedidos-api-gs.gsierrar.dev/webhook/authorizegs\" };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -416,
+        4208
+      ],
+      "id": "a7a68f70-e65b-44e2-a7d4-ad54940a31a9",
+      "name": "Code2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "aadb05bb-87cc-4dad-a992-4bcbc819e0ab",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        160,
+        4128
+      ],
+      "id": "e9ab4ffb-a29e-46eb-a3bf-c08a2e198027",
+      "name": "error1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const accessToken = $input.first().json.access_token;\nconst expiresIn = $input.first().json.expires_in;\n\nreturn { accessToken, expiresIn }"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        512,
+        4240
+      ],
+      "id": "c5a2b237-ed50-4efc-aa1b-a52def298744",
+      "name": "Code4"
+    },
+    {
+      "parameters": {
+        "path": "authorizegs",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -848,
+        4256
+      ],
+      "id": "e49ef919-4b36-48c5-8001-4106f8835f7c",
+      "name": "Authorize code1",
+      "webhookId": "7f51ca0f-61c1-4a4c-99df-7b0e02ce7a6d"
+    },
+    {
+      "parameters": {
+        "httpMethod": "=OPTIONS",
+        "path": "authorizegs",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -848,
+        4128
+      ],
+      "id": "338282cf-12af-4cbf-af14-4ae69a1daeb8",
+      "name": "Authorize code options1",
+      "webhookId": "7f51ca0f-61c1-4a4c-99df-7b0e02ce7a6d"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://accounts.zoho.com/oauth/v2/token",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "code",
+              "value": "={{ $json.code }}"
+            },
+            {
+              "name": "grant_type",
+              "value": "authorization_code"
+            },
+            {
+              "name": "client_id",
+              "value": "1000.5U8I460UG3WLLU85J5GLAKUDXLN9WZ"
+            },
+            {
+              "name": "client_secret",
+              "value": "45a9b1dfc9b716ff3912a2be813b9fb18440256f01"
+            },
+            {
+              "name": "redirect_uri",
+              "value": "={{ $json.redirectUrl }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -112,
+        4208
+      ],
+      "id": "2bf5f64e-966b-4816-8a5b-3e35e29e50e4",
+      "name": "Get token1"
+    },
+    {
+      "parameters": {
+        "respondWith": "redirect",
+        "redirectURL": "=https://animated-trout-x5g79rvrpr2jj4-5173.app.github.dev/auth/callback?access_token={{ $json.accessToken }}&expires_in={{ $json.expiresIn }}",
+        "options": {
+          "responseCode": 302
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        720,
+        4240
+      ],
+      "id": "5cc8e7bc-6045-4d2b-be9d-542e08fd74eb",
+      "name": "Respond to Webhook5"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -768,
+        3984
+      ],
+      "typeVersion": 1,
+      "id": "efa71ea3-9af1-4e16-a09f-1370bcc8f2a9",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Auth0",
+        "height": 1120,
+        "width": 1968
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -112,
+        1376
+      ],
+      "typeVersion": 1,
+      "id": "d4080660-a687-44a3-a944-385a7294b9bb",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Pedidos",
+        "height": 1136,
+        "width": 1440,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        0,
+        0
+      ],
+      "typeVersion": 1,
+      "id": "d6f0d222-7362-4fce-8674-6e09571c075a",
+      "name": "Sticky Note2"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "GET Clients": {
+      "main": [
+        [
+          {
+            "node": "Mapear clientes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET Products": {
+      "main": [
+        [
+          {
+            "node": "Mapear productos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mapear productos": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crear pedidos": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar productos": {
+      "main": [
+        [
+          {
+            "node": "GET Products",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar clientes": {
+      "main": [
+        [
+          {
+            "node": "GET Clients",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mapear clientes": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Get token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "error": {
+      "main": [
+        [
+          {
+            "node": "Code3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Authorize code": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get token": {
+      "main": [
+        [
+          {
+            "node": "error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code5": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "User info": {
+      "main": [
+        [
+          {
+            "node": "Code5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code3": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code2": {
+      "main": [
+        [
+          {
+            "node": "Get token1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "error1": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Code4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code4": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Authorize code1": {
+      "main": [
+        [
+          {
+            "node": "Code2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get token1": {
+      "main": [
+        [
+          {
+            "node": "error1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "10a84f9c-6718-481d-989f-e87231c1d421",
+  "meta": {
+    "instanceId": "90c6f15b3dc709a9edea4acfdadb1a3ca9b2e7e7dab708e08698fbc0d8e43579"
+  },
+  "id": "CtjS21wN8jkAaukf",
+  "tags": []
+}
