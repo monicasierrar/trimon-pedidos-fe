@@ -15,7 +15,8 @@ import {
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { Dayjs } from 'dayjs';
-import { pedidosMock, Pedido } from '../data/mocks';
+import { pedidosMock } from '../data/mocks';
+import { Pedido } from '../api/types';
 
 const HistorialPage = () => {
   // 1. Estados para manejar las fechas seleccionadas
