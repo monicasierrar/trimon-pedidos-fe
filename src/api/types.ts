@@ -19,10 +19,14 @@ export interface Producto {
   modelo: string;
   stock: number;
   precio: number;
+  codImpuesto: string;
+  porcentajeImpuesto: number;
+  unidad: string;
 }
 
 export interface PedidoProducto extends Producto {
   cantidad: number;
+  
 }
 
 export interface Pedido {
