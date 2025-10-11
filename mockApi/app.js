@@ -18,33 +18,47 @@ app.get('/clientes', (req, res) => {
     const clientes = [
         {
             id: 1,
-            nit: '900.123.456-7',
-            razonSocial: 'Cliente Alpha S.A.S.',
+            nit: '900339960',
+            razonSocial: 'AMERICANA DE LUJOS',
             sucursal: '0',
             telefono: '3101234567',
-            direccion: 'Calle Falsa 123',
+            direccion: 'CARRERA 17 Nº 8-08 BARRIO LA ESTANZUELA',
             departamento: 'Cundinamarca',
-            ciudad: 'Bogotá'
+            ciudad: 'Bogotá',
+            idformapago: 1
         },
         {
             id: 2,
-            nit: '800.789.123-4',
+            nit: '900339960',
+            razonSocial: 'AMERICANA DE LUJOS',
+            sucursal: '1',
+            telefono: '3101234567',
+            direccion: 'DIAGONAL 16 N°96G-18 FONTIBON',
+            departamento: 'Cundinamarca',
+            ciudad: 'Bogotá',
+            idformapago: 4
+        },
+        {
+            id: 3,
+            nit: '800789123',
             razonSocial: 'Comercializadora Beta Ltda.',
             sucursal: '1',
             telefono: '3207891234',
             direccion: 'Avenida Siempre Viva 742',
             departamento: 'Antioquia',
-            ciudad: 'Medellín'
+            ciudad: 'Medellín',
+            idformapago: 1
         },
         {
-            id: 3,
-            nit: '901.456.789-0',
+            id: 4,
+            nit: '860075208',
             razonSocial: 'Industrias Gamma',
             sucursal: '2',
             telefono: '3019876543',
             direccion: 'Transversal 50 # 100-20',
             departamento: 'Atlántico',
-            ciudad: 'Barranquilla'
+            ciudad: 'Barranquilla',
+            idformapago: 5
         },
     ]
     return res.json({
@@ -63,7 +77,10 @@ app.get('/productos', (req, res) => {
             marca: 'Bosch', 
             modelo: 'Ceramic Pro', 
             stock: 45, 
-            precio: 180000
+            precio: 180000,
+            unidad: 'Und',
+            porcentaje: '19',
+            codimp: 'IVA01'
         },
         {
             id: 202, 
@@ -74,7 +91,10 @@ app.get('/productos', (req, res) => {
             marca: 'ACDelco', 
             modelo: 'PF47', 
             stock: 120, 
-            precio: 35000
+            precio: 35000,
+            unidad: 'Und',
+            porcentaje: '10',
+            codimp: 'IVA01'
         },
         {
             id: 203, 
@@ -85,7 +105,10 @@ app.get('/productos', (req, res) => {
             marca: 'NGK', 
             modelo: 'Laser Iridium', 
             stock: 250, 
-            precio: 45000
+            precio: 45000,
+            unidad: 'Und',
+            porcentaje: '19',
+            codimp: 'IVA01'
         },
         {
             id: 204, 
@@ -96,7 +119,10 @@ app.get('/productos', (req, res) => {
             marca: 'Gabriel', 
             modelo: 'Gas Ryder', 
             stock: 30, 
-            precio: 220000
+            precio: 220000,
+            unidad: 'Und',
+            porcentaje: '19',
+            codimp: 'IVA01'
         },
     ]
     return res.json({
