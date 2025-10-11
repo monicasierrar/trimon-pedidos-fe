@@ -12,9 +12,6 @@ const LoginButton = () => {
     const REDIRECT_URI = import.meta.env.VITE_REDIRECT_URI;
     const SCOPES = 'aaaserver.profile.READ,ZohoMail.accounts.READ';
 
-    console.log("Enviando Client ID:", ZOHO_CLIENT_ID);
-    console.log("Enviando Redirect URI:", REDIRECT_URI);
-
     const zohoAuthUrl = `https://accounts.zoho.com/oauth/v2/auth?scope=${SCOPES}&client_id=${ZOHO_CLIENT_ID}&response_type=code&access_type=offline&redirect_uri=${REDIRECT_URI}`;
 
     window.location.href = zohoAuthUrl;
