@@ -8,7 +8,7 @@ const AuthCallback = () => {
   const { search } = useLocation();
 
   const params = new URLSearchParams(search);
-
+  
   useEffect(() => {
     const fetchData = async () => {
       const accessToken = params.get("access_token");

@@ -12,8 +12,8 @@ export const getClients = async (token: string): Promise<Cliente[]> => {
         .catch(err => console.log("error fetching clients ", err))
 }
 
-export const getProducts = async (token: string): Promise<Producto[]> => {
-    return getData(PRODUCTS_ENDPOINT, token).then(result => result.productos)
+export const getProducts = async (token: string, clientenit: string, sucursalId: string): Promise<Producto[]> => {
+    return getData(`${PRODUCTS_ENDPOINT}?clientenit=${clientenit}&sucursalId=${sucursalId}`, token).then(result => result.productos)
         .catch(err => console.log("error fetching products ", err))
 }
 

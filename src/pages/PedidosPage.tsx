@@ -20,10 +20,14 @@ import {
   Stack,
   Box,
   Divider,
+  CircularProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SendIcon from '@mui/icons-material/Send';
-import { CSVLink } from 'react-csv';
 import { Cliente, PedidoProducto, Producto } from '../api/types';
 import { getClients, getProducts } from '../api/apiClient';
 
@@ -32,189 +36,196 @@ const PedidosPage = () => {
   const [productosDelPedido, setProductosDelPedido] = useState<PedidoProducto[]>([]);
   const [listaClientes, setListaClientes] = useState<Cliente[]>([]);
   const [listaProductos, setListaProductos] = useState<Producto[]>([]);
-  
+  const [cargandoProductos, setCargandoProductos] = useState(false);
+  const [comentarios, setComentarios] = useState('');
+  const [enviandoPedido, setEnviandoPedido] = useState(false);
+  const [abrirDialogo, setAbrirDialogo] = useState(false);
+
   const [fechaPedido, setFechaPedido] = useState('');
   const [notificacion, setNotificacion] = useState({
     open: false,
     message: '',
-    severity: 'success' as 'success' | 'error',
+    severity: 'success' as 'success' | 'error' | 'info',
   });
 
+  // 🔹 Cargar clientes
   useEffect(() => {
-    getClients(localStorage.getItem('session_token') || '')
+    getClients(localStorage.getItem("session_toke") || "" )
       .then((clients) => setListaClientes(clients))
       .catch((err) => console.error('Error fetching clients:', err));
-    getProducts(localStorage.getItem('session_token') || '')
-      .then((productos) => setListaProductos(productos))
-      .catch((err) => console.error('Error fetching products:', err));
   }, []);
 
+  // 🔹 Cargar productos según cliente
   useEffect(() => {
-    setFechaPedido(new Date().toLocaleDateString('es-CO', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    }));
+    if (clienteSeleccionado) {
+      setCargandoProductos(true);
+      setListaProductos([]);
+      setProductosDelPedido([]);
+
+      getProducts(localStorage.getItem('session_token') || '', clienteSeleccionado.nit, clienteSeleccionado.sucursal.toString())
+        .then((productos) => {
+          setListaProductos(productos);
+          setNotificacion({
+            open: true,
+            message: '✅ Productos cargados correctamente',
+            severity: 'success',
+          });
+        })
+        .catch(() => {
+          setNotificacion({
+            open: true,
+            message: '❌ Error al cargar productos',
+            severity: 'error',
+          });
+        })
+        .finally(() => setCargandoProductos(false));
+    } else {
+      setListaProductos([]);
+      setProductosDelPedido([]);
+    }
+  }, [clienteSeleccionado]);
+
+  // 🔹 Fecha del pedido
+  useEffect(() => {
+    setFechaPedido(
+      new Date().toLocaleDateString('es-CO', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
+    );
   }, []);
 
+  // 🔹 Agregar producto con validación de duplicados y stock
   const handleAddProducto = (producto: Producto | null) => {
-    if (producto && !productosDelPedido.find(p => p.id === producto.id)) {
-      setProductosDelPedido([...productosDelPedido, { ...producto, cantidad: 1 }]);
+    if (!producto) return;
+
+    const existe = productosDelPedido.some((p) => p.id === producto.id);
+    if (existe) {
+      setNotificacion({
+        open: true,
+        message: `⚠️ El producto ${producto.nombre} ya fue agregado.`,
+        severity: 'info',
+      });
+      return;
     }
+
+    if (producto.stock <= 0) {
+      setNotificacion({
+        open: true,
+        message: `❌ El producto ${producto.nombre} no tiene stock disponible.`,
+        severity: 'error',
+      });
+      return;
+    }
+
+    setProductosDelPedido([...productosDelPedido, { ...producto, cantidad: 1 }]);
   };
 
+  // 🔹 Actualizar cantidad con validación
   const handleUpdateCantidad = (id: number, cantidad: number) => {
-    const nuevaCantidad = Math.max(1, cantidad);
+    const producto = productosDelPedido.find((p) => p.id === id);
+    if (!producto) return;
+
+    let nuevaCantidad = Math.max(1, cantidad);
+    if (nuevaCantidad > producto.stock) {
+      nuevaCantidad = producto.stock;
+      setNotificacion({
+        open: true,
+        message: `⚠️ No puedes pedir más de ${producto.stock} unidades de ${producto.nombre}.`,
+        severity: 'error',
+      });
+    }
+
     setProductosDelPedido(
-      productosDelPedido.map(p => (p.id === id ? { ...p, cantidad: nuevaCantidad } : p))
+      productosDelPedido.map((p) =>
+        p.id === id ? { ...p, cantidad: nuevaCantidad } : p
+      )
     );
   };
 
   const handleRemoveProducto = (id: number) => {
-    setProductosDelPedido(productosDelPedido.filter(p => p.id !== id));
+    setProductosDelPedido(productosDelPedido.filter((p) => p.id !== id));
   };
 
-  const subtotalPedido = productosDelPedido.reduce((total, p) => total + p.precio * p.cantidad, 0);
-  const ivaTotal = subtotalPedido * 0.19;
+  // 🔹 Totales
+  const subtotalPedido = productosDelPedido.reduce(
+    (total, p) => total + p.precio * p.cantidad,
+    0
+  );
+  const ivaTotal = productosDelPedido.reduce(
+    (total, p) => total + p.precio * p.cantidad * (p.porcentajeImpuesto / 100),
+    0
+  );
   const totalPedido = subtotalPedido + ivaTotal;
 
-  // ✅ Función para descargar JSON
-  const downloadJson = (data: object, filename: string) => {
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    link.click();
-    URL.revokeObjectURL(url);
-  };
+  // 🔹 Confirmar envío
+  const handleConfirmarEnvio = () => setAbrirDialogo(true);
+  const handleCancelarEnvio = () => setAbrirDialogo(false);
 
-  // ✅ Nueva función para armar y descargar el JSON con la estructura solicitada
-  const handleEnviarPedido = () => {
-    const fechaHoy = new Date().toISOString().split("T")[0];
-    const numeroPedido = Date.now();
+  const handleEnviarPedido = async () => {
+    if (!clienteSeleccionado) return;
+
+    setEnviandoPedido(true);
+    setAbrirDialogo(false);
+
+    const fechaHoy = new Date().toISOString().split('T')[0];
 
     const pedidoJson = {
-      anulado: "N",
-      comentarios: "Pedido generado desde la app",
-      descuento: 0,
+      nit: clienteSeleccionado.nit,
+      sucursal: clienteSeleccionado.sucursal,
       fecha: fechaHoy,
-      fentrega: fechaHoy,
-      idsuc: 1,
-      idvendedor: 1,
-      iva: ivaTotal,
-      nit: clienteSeleccionado?.nit || "",
-      numero: numeroPedido,
-      ordencompra: `ORD-${numeroPedido}`,
-      prefijo: "PE",
-      retefuente: 0,
-      reteica: 0,
-      reteiva: 0,
+      comentarios: comentarios || '',
       subtotal: subtotalPedido,
-      //sucursal: 0,
+      iva: ivaTotal,
       total: totalPedido,
-      usuario: "ERP",
-      totalDet: productosDelPedido.length,
-      totalImp: 1,
-      totalPag: 1,
-      detalle: productosDelPedido.map((p, idx) => {
-        const subtotalProd = p.precio * p.cantidad;
-        const ivaProd = subtotalProd * 0.19;
-        return {
-          cantidad: p.cantidad,
-          codimp: "IVA01",
-          costo: 0,
-          dcto_fam: 0,
-          dcto_vol: 0,
-          descuento: 0,
-          factor: 1,
-          idbodega: "19",
-          idproducto: p.codigo,
-          idunidad: "Und",
-          iva: ivaProd,
-          neto: subtotalProd + ivaProd,
-          operacion: "SA",
-          porcdcto: 0,
-          porciva: 19,
-          pos: idx + 1,
-          precio: p.precio,
-          subtotal: subtotalProd,
-          unidades: p.cantidad,
-          valorbruto: subtotalProd,
-          vdescuento: 0
-        };
-      }),
-      impuesto: [
-        {
-          base_calculo: subtotalPedido,
-          codimp: "IVA01",
-          liquida: "S",
-          valor: ivaTotal
-        }
-      ],
-      pago: [
-        {
-          idformapago: 1,
-          fvence: fechaHoy,
-          valor: totalPedido,
-          plazo: 1,
-          ref_doc: "PE"
-        }
-      ],
-      sucursal: {
-        ciudad: clienteSeleccionado?.ciudad || "",
-        departamento: clienteSeleccionado?.departamento || "",
-        direccion1: clienteSeleccionado?.direccion || "",
-        razonsocial: clienteSeleccionado?.razonSocial || "",
-        telefono1: clienteSeleccionado?.telefono || "",
-        idvendedor: 1
-      },
-      tercero: {
-        nit: clienteSeleccionado?.nit || "",
-        razonsocial: clienteSeleccionado?.razonSocial || "",
-        tdoc: 31,
-        tipopersona: "J",
-        escliente: "S",
-        usuario: "ERP"
-      }
+      detalle: productosDelPedido.map((p) => ({
+        idproducto: p.codigo,
+        cantidad: p.cantidad,
+        valor_unitario: p.precio,
+        valor_total: p.precio * p.cantidad,
+        porciva: p.porcentajeImpuesto,
+      })),
     };
 
-    console.log("🚩 Pedido JSON generado:", pedidoJson);
+    console.log('🚩 Pedido JSON generado:', pedidoJson);
 
-    downloadJson(
-      pedidoJson,
-      `pedido-${clienteSeleccionado?.nit || "cliente"}-${numeroPedido}.json`
-    );
+    // 🔹 Bloque preparado para integración con n8n (comentado)
+    /*
+    try {
+      const response = await fetch('https://tu-flujo-n8n-url', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(pedidoJson),
+      });
+      const result = await response.json();
+      console.log('Respuesta del servidor:', result);
+    } catch (error) {
+      console.error('Error enviando pedido:', error);
+    }
+    */
 
-    setNotificacion({
-      open: true,
-      message: '¡Pedido armado y descargado en JSON con éxito!',
-      severity: 'success',
-    });
+    setTimeout(() => {
+      setEnviandoPedido(false);
+      setClienteSeleccionado(null);
+      setProductosDelPedido([]);
+      setComentarios('');
+
+      setNotificacion({
+        open: true,
+        message: '✅ Pedido enviado correctamente al servidor.',
+        severity: 'success',
+      });
+    }, 1500);
   };
-
-  const csvHeaders = [
-    { label: "Pedido ID", key: "pedidoId" },
-    { label: "Cliente", key: "cliente" },
-    { label: "Fecha y Hora", key: "fechaHora" },
-    { label: "Productos y Cantidades", key: "productos" },
-  ];
-
-  const csvData = [{
-    pedidoId: `PED-${Date.now()}`,
-    cliente: clienteSeleccionado?.razonSocial || '',
-    fechaHora: new Date().toISOString(),
-    productos: productosDelPedido.map(p => `${p.nombre} (x${p.cantidad})`).join('; '),
-  }];
 
   return (
     <AppLayout>
       <Paper sx={{ p: 3, borderRadius: 2 }}>
         <Stack spacing={3}>
-          <Typography variant="h4">
-            Crear Nuevo Pedido
-          </Typography>
+          <Typography variant="h4">Crear Nuevo Pedido</Typography>
 
+          {/* Cliente y Fecha */}
           <Stack direction={{ xs: 'column', md: 'row' }} spacing={3}>
             <Box sx={{ width: { xs: '100%', md: '66.67%' } }}>
               <Autocomplete
@@ -223,13 +234,20 @@ const PedidosPage = () => {
                 onChange={(_, value) => setClienteSeleccionado(value)}
                 renderInput={(params) => <TextField {...params} label="Buscar Cliente" />}
                 isOptionEqualToValue={(option, value) => option.id === value.id}
+                value={clienteSeleccionado}
               />
             </Box>
             <Box sx={{ width: { xs: '100%', md: '33.33%' } }}>
-              <TextField label="Fecha del Pedido" value={fechaPedido} fullWidth InputProps={{ readOnly: true }} />
+              <TextField
+                label="Fecha del Pedido"
+                value={fechaPedido}
+                fullWidth
+                InputProps={{ readOnly: true }}
+              />
             </Box>
           </Stack>
 
+          {/* Info cliente */}
           {clienteSeleccionado && (
             <Card variant="outlined">
               <CardContent>
@@ -240,16 +258,13 @@ const PedidosPage = () => {
                   <strong>NIT:</strong> {clienteSeleccionado.nit}
                 </Typography>
                 <Typography color="textSecondary" variant="body2">
+                  <strong>Sucursal:</strong> {clienteSeleccionado.sucursal}
+                </Typography>
+                <Typography color="textSecondary" variant="body2">
                   <strong>Dirección:</strong> {clienteSeleccionado.direccion}
                 </Typography>
                 <Typography color="textSecondary" variant="body2">
                   <strong>Ubicación:</strong> {clienteSeleccionado.ciudad}, {clienteSeleccionado.departamento}
-                </Typography>
-                <Typography color="textSecondary" variant="body2">
-                  <strong>Sucursal:</strong> {clienteSeleccionado.sucursal}
-                </Typography>
-                <Typography color="textSecondary" variant="body2">
-                  <strong>Teléfono:</strong> {clienteSeleccionado.telefono}
                 </Typography>
               </CardContent>
             </Card>
@@ -257,94 +272,129 @@ const PedidosPage = () => {
 
           <Divider />
 
+          {/* Productos */}
           <Autocomplete
             options={listaProductos}
-            getOptionLabel={(option) => option.nombre}
-            renderOption={(props, option) => (
-              <Box component="li" sx={{ '& > img': { mr: 2, flexShrink: 0 } }} {...props}>
-                <Box>
-                  <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
-                    {option.nombre} - {option.marca}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Código: {option.codigo} | Modelo: {option.modelo}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    Familia: {option.familia} | Grupo: {option.grupo}
-                  </Typography>
-                  <Typography variant="body2" color="primary" sx={{ fontWeight: 'medium', mt: 1 }}>
-                    Stock: {option.stock} | Precio: {option.precio.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}
-                  </Typography>
-                </Box>
-              </Box>
-            )}
+            getOptionLabel={(option) => option.codigo}
             onChange={(_, value) => handleAddProducto(value)}
-            renderInput={(params) => <TextField {...params} label="Agregar Producto al Pedido" />}
-            disabled={!clienteSeleccionado}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Agregar Producto al Pedido"
+                InputProps={{
+                  ...params.InputProps,
+                  endAdornment: (
+                    <>
+                      {cargandoProductos ? <CircularProgress color="inherit" size={20} /> : null}
+                      {params.InputProps.endAdornment}
+                    </>
+                  ),
+                }}
+              />
+            )}
+            disabled={!clienteSeleccionado || cargandoProductos}
           />
 
+          {/* Tabla */}
           <TableContainer component={Paper} variant="outlined">
             <Table>
               <TableHead>
                 <TableRow>
                   <TableCell>Producto</TableCell>
-                  <TableCell align="right">Precio Unit.</TableCell>
+                  <TableCell align="right">Valor Unit.</TableCell>
                   <TableCell align="center">Cantidad</TableCell>
+                  <TableCell align="right">Valor Total</TableCell>
+                  <TableCell align="right">IVA</TableCell>
                   <TableCell align="right">Subtotal</TableCell>
                   <TableCell align="center">Acción</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {productosDelPedido.length === 0 ? (
-                  <TableRow><TableCell colSpan={5} align="center">Agrega productos para comenzar</TableCell></TableRow>
+                  <TableRow>
+                    <TableCell colSpan={7} align="center">
+                      Agrega productos para comenzar
+                    </TableCell>
+                  </TableRow>
                 ) : (
-                  productosDelPedido.map((p) => (
-                    <TableRow key={p.id}>
-                      <TableCell component="th" scope="row">
-                        {p.nombre}
-                        <Typography variant="caption" display="block" color="textSecondary">
-                          Código: {p.codigo} | Marca: {p.marca}
-                        </Typography>
-                      </TableCell>
-                      <TableCell align="right">{p.precio.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}</TableCell>
-                      <TableCell align="center">
-                        <TextField
-                          type="number"
-                          value={p.cantidad}
-                          onChange={(e) => handleUpdateCantidad(p.id, parseInt(e.target.value, 10))}
-                          inputProps={{ min: 1, style: { textAlign: 'center' } }}
-                          sx={{ width: '80px' }}
-                        />
-                      </TableCell>
-                      <TableCell align="right">{(p.precio * p.cantidad).toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}</TableCell>
-                      <TableCell align="center">
-                        <IconButton color="error" onClick={() => handleRemoveProducto(p.id)}>
-                          <DeleteIcon />
-                        </IconButton>
-                      </TableCell>
-                    </TableRow>
-                  ))
+                  productosDelPedido.map((p) => {
+                    const valorTotal = p.precio * p.cantidad;
+                    const ivaProd = valorTotal * (p.porcentajeImpuesto / 100);
+                    return (
+                      <TableRow key={p.id}>
+                        <TableCell>{p.codigo} - {p.nombre}</TableCell>
+                        <TableCell align="right">
+                          {p.precio.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}
+                        </TableCell>
+                        <TableCell align="center">
+                          <TextField
+                            type="number"
+                            value={p.cantidad}
+                            onChange={(e) =>
+                              handleUpdateCantidad(p.id, parseInt(e.target.value, 10))
+                            }
+                            inputProps={{ min: 1, max: p.stock, style: { textAlign: 'center' } }}
+                            sx={{ width: '80px' }}
+                          />
+                        </TableCell>
+                        <TableCell align="right">
+                          {valorTotal.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}
+                        </TableCell>
+                        <TableCell align="right">
+                          {ivaProd.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}
+                        </TableCell>
+                        <TableCell align="right">
+                          {(valorTotal + ivaProd).toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}
+                        </TableCell>
+                        <TableCell align="center">
+                          <IconButton color="error" onClick={() => handleRemoveProducto(p.id)}>
+                            <DeleteIcon />
+                          </IconButton>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
                 )}
 
                 {/* Totales */}
                 {productosDelPedido.length > 0 && (
                   <>
                     <TableRow sx={{ '& > td': { border: 0 } }}>
-                      <TableCell colSpan={3} />
-                      <TableCell align="right"><Typography variant="h6">SUBTOTAL:</Typography></TableCell>
-                      <TableCell align="right"><Typography variant="h6">{subtotalPedido.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}</Typography></TableCell>
+                      <TableCell colSpan={5} />
+                      <TableCell align="right">
+                        <Typography variant="body2" sx={{ fontWeight: 'bold' }}>SUBTOTAL:</Typography>
+                      </TableCell>
+                      <TableCell align="right">
+                        <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                          {subtotalPedido.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}
+                        </Typography>
+                      </TableCell>
                     </TableRow>
 
                     <TableRow sx={{ '& > td': { border: 0 } }}>
-                      <TableCell colSpan={3} />
-                      <TableCell align="right"><Typography variant="h6">IVA (19%):</Typography></TableCell>
-                      <TableCell align="right"><Typography variant="h6">{ivaTotal.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}</Typography></TableCell>
+                      <TableCell colSpan={5} />
+                      <TableCell align="right">
+                        <Typography variant="body2" sx={{ fontWeight: 'bold' }}>TOTAL IVA:</Typography>
+                      </TableCell>
+                      <TableCell align="right">
+                        <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                          {ivaTotal.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}
+                        </Typography>
+                      </TableCell>
                     </TableRow>
 
                     <TableRow sx={{ '& > td': { border: 0 } }}>
-                      <TableCell colSpan={3} />
-                      <TableCell align="right"><Typography variant="h6">TOTAL:</Typography></TableCell>
-                      <TableCell align="right"><Typography variant="h6">{totalPedido.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}</Typography></TableCell>
+                      <TableCell colSpan={5} />
+                      <TableCell align="right">
+                        <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                          TOTAL:
+                        </Typography>
+                      </TableCell>
+                      <TableCell align="right">
+                        <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                          {totalPedido.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}
+                        </Typography>
+                      </TableCell>
                     </TableRow>
                   </>
                 )}
@@ -352,34 +402,62 @@ const PedidosPage = () => {
             </Table>
           </TableContainer>
 
-          <Stack direction="row" justifyContent="flex-end" spacing={2}>
-            <CSVLink
-              data={csvData}
-              headers={csvHeaders}
-              filename={`pedido-${clienteSeleccionado?.nit || ''}-${Date.now()}.csv`}
-              style={{ textDecoration: 'none' }}
-            >
-              <Button 
-                variant="outlined"
-                disabled={productosDelPedido.length === 0 || !clienteSeleccionado}
-              >
-                Exportar a CSV
-              </Button>
-            </CSVLink>
+          {/* Comentarios */}
+          {productosDelPedido.length > 0 && (
+            <TextField
+              label="Comentarios"
+              value={comentarios}
+              onChange={(e) => setComentarios(e.target.value.slice(0, 80))}
+              helperText={`${comentarios.length}/80`}
+              multiline
+              rows={2}
+              fullWidth
+            />
+          )}
+
+          {/* Botón */}
+          <Stack direction="row" justifyContent="flex-end">
             <Button
               variant="contained"
               color="primary"
-              onClick={handleEnviarPedido}
-              disabled={productosDelPedido.length === 0 || !clienteSeleccionado}
-              startIcon={<SendIcon />}
+              onClick={handleConfirmarEnvio}
+              disabled={productosDelPedido.length === 0 || !clienteSeleccionado || enviandoPedido}
+              startIcon={enviandoPedido ? <CircularProgress size={20} color="inherit" /> : <SendIcon />}
             >
-              Enviar Pedido
+              {enviandoPedido ? 'Enviando...' : 'Enviar Pedido'}
             </Button>
           </Stack>
         </Stack>
       </Paper>
-      
-      <Snackbar open={notificacion.open} autoHideDuration={4000} onClose={() => setNotificacion({ ...notificacion, open: false })} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
+
+      {/* Diálogo de confirmación */}
+      <Dialog open={abrirDialogo} onClose={handleCancelarEnvio}>
+        <DialogTitle>Confirmar Envío</DialogTitle>
+        <DialogContent>
+          <Typography>
+            <strong>Cliente:</strong> {clienteSeleccionado?.razonSocial}
+          </Typography>
+          <Typography>
+            <strong>Total:</strong>{' '}
+            {totalPedido.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}
+          </Typography>
+          {comentarios && <Typography><strong>Comentarios:</strong> {comentarios}</Typography>}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCancelarEnvio} color="inherit">Cancelar</Button>
+          <Button onClick={handleEnviarPedido} color="primary" variant="contained">
+            Confirmar Envío
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Notificaciones */}
+      <Snackbar
+        open={notificacion.open}
+        autoHideDuration={4000}
+        onClose={() => setNotificacion({ ...notificacion, open: false })}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
         <Alert severity={notificacion.severity} sx={{ width: '100%' }} variant="filled">
           {notificacion.message}
         </Alert>
