@@ -24,7 +24,6 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogContentText,
   DialogActions,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -39,34 +38,50 @@ const PedidosPage = () => {
   const [listaProductos, setListaProductos] = useState<Producto[]>([]);
   const [cargandoProductos, setCargandoProductos] = useState(false);
   const [comentarios, setComentarios] = useState('');
-  const [openConfirm, setOpenConfirm] = useState(false);
+  const [enviandoPedido, setEnviandoPedido] = useState(false);
+  const [abrirDialogo, setAbrirDialogo] = useState(false);
 
   const [fechaPedido, setFechaPedido] = useState('');
   const [notificacion, setNotificacion] = useState({
     open: false,
     message: '',
-    severity: 'success' as 'success' | 'error',
+    severity: 'success' as 'success' | 'error' | 'info',
   });
 
   // 🔹 Cargar clientes
   useEffect(() => {
-    getClients(localStorage.getItem("session_token") || "")
+    getClients(localStorage.getItem("session_toke") || "" )
       .then((clients) => setListaClientes(clients))
       .catch((err) => console.error('Error fetching clients:', err));
   }, []);
 
   // 🔹 Cargar productos según cliente
   useEffect(() => {
-    setCargandoProductos(true);
     if (clienteSeleccionado) {
+      setCargandoProductos(true);
+      setListaProductos([]);
+      setProductosDelPedido([]);
+
       getProducts(localStorage.getItem('session_token') || '', clienteSeleccionado.nit, clienteSeleccionado.sucursal.toString())
-        .then((products) => setListaProductos(products))
-        .catch((err) => console.error('Error fetching products:', err))
-        .finally(()=>setCargandoProductos(false));
+        .then((productos) => {
+          setListaProductos(productos);
+          setNotificacion({
+            open: true,
+            message: '✅ Productos cargados correctamente',
+            severity: 'success',
+          });
+        })
+        .catch(() => {
+          setNotificacion({
+            open: true,
+            message: '❌ Error al cargar productos',
+            severity: 'error',
+          });
+        })
+        .finally(() => setCargandoProductos(false));
     } else {
       setListaProductos([]);
       setProductosDelPedido([]);
-      setCargandoProductos(false);
     }
   }, [clienteSeleccionado]);
 
@@ -81,19 +96,30 @@ const PedidosPage = () => {
     );
   }, []);
 
-  // 🔹 Agregar producto con validación de stock
+  // 🔹 Agregar producto con validación de duplicados y stock
   const handleAddProducto = (producto: Producto | null) => {
-    if (producto && !productosDelPedido.find((p) => p.id === producto.id)) {
-      if (producto.stock <= 0) {
-        setNotificacion({
-          open: true,
-          message: `❌ El producto ${producto.nombre} no tiene stock disponible`,
-          severity: 'error',
-        });
-        return;
-      }
-      setProductosDelPedido([...productosDelPedido, { ...producto, cantidad: 1 }]);
+    if (!producto) return;
+
+    const existe = productosDelPedido.some((p) => p.id === producto.id);
+    if (existe) {
+      setNotificacion({
+        open: true,
+        message: `⚠️ El producto ${producto.nombre} ya fue agregado.`,
+        severity: 'info',
+      });
+      return;
     }
+
+    if (producto.stock <= 0) {
+      setNotificacion({
+        open: true,
+        message: `❌ El producto ${producto.nombre} no tiene stock disponible.`,
+        severity: 'error',
+      });
+      return;
+    }
+
+    setProductosDelPedido([...productosDelPedido, { ...producto, cantidad: 1 }]);
   };
 
   // 🔹 Actualizar cantidad con validación
@@ -106,7 +132,7 @@ const PedidosPage = () => {
       nuevaCantidad = producto.stock;
       setNotificacion({
         open: true,
-        message: `⚠️ No puedes pedir más de ${producto.stock} unidades de ${producto.nombre}`,
+        message: `⚠️ No puedes pedir más de ${producto.stock} unidades de ${producto.nombre}.`,
         severity: 'error',
       });
     }
@@ -128,65 +154,69 @@ const PedidosPage = () => {
     0
   );
   const ivaTotal = productosDelPedido.reduce(
-    (total, p) => total + (p.precio * p.cantidad * (p.porcentajeImpuesto / 100)),
+    (total, p) => total + p.precio * p.cantidad * (p.porcentajeImpuesto / 100),
     0
   );
   const totalPedido = subtotalPedido + ivaTotal;
 
-  // 🔹 Limpiar formulario
-  const resetForm = () => {
-    setClienteSeleccionado(null);
-    setProductosDelPedido([]);
-    setComentarios('');
-  };
+  // 🔹 Confirmar envío
+  const handleConfirmarEnvio = () => setAbrirDialogo(true);
+  const handleCancelarEnvio = () => setAbrirDialogo(false);
 
-  // 🔹 Confirmación y envío del pedido
-  const handleEnviarPedidoConfirmado = async () => {
+  const handleEnviarPedido = async () => {
+    if (!clienteSeleccionado) return;
+
+    setEnviandoPedido(true);
+    setAbrirDialogo(false);
+
+    const fechaHoy = new Date().toISOString().split('T')[0];
+
+    const pedidoJson = {
+      nit: clienteSeleccionado.nit,
+      sucursal: clienteSeleccionado.sucursal,
+      fecha: fechaHoy,
+      comentarios: comentarios || '',
+      subtotal: subtotalPedido,
+      iva: ivaTotal,
+      total: totalPedido,
+      detalle: productosDelPedido.map((p) => ({
+        idproducto: p.codigo,
+        cantidad: p.cantidad,
+        valor_unitario: p.precio,
+        valor_total: p.precio * p.cantidad,
+        porciva: p.porcentajeImpuesto,
+      })),
+    };
+
+    console.log('🚩 Pedido JSON generado:', pedidoJson);
+
+    // 🔹 Bloque preparado para integración con n8n (comentado)
+    /*
     try {
-      const pedidoJson = {
-        fecha: new Date().toISOString().split('T')[0],
-        nit: clienteSeleccionado?.nit || '',
-        sucursal: clienteSeleccionado?.sucursal || '',
-        comentarios: comentarios.trim(),
-        subtotal: subtotalPedido,
-        iva: ivaTotal,
-        total: totalPedido,
-        detalle: productosDelPedido.map((p, idx) => ({
-          cantidad: p.cantidad,
-          idproducto: p.codigo,
-          precio: p.precio,
-          codimp: p.codImpuesto,
-          idunidad: p.unidad,
-          porciva: p.porcentajeImpuesto,
-          subtotal: p.precio * p.cantidad,
-          iva: p.precio * p.cantidad * (p.porcentajeImpuesto / 100),
-          pos: idx + 1,
-        })),
-      };
+      const response = await fetch('https://tu-flujo-n8n-url', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(pedidoJson),
+      });
+      const result = await response.json();
+      console.log('Respuesta del servidor:', result);
+    } catch (error) {
+      console.error('Error enviando pedido:', error);
+    }
+    */
 
-      console.log('✅ Pedido listo para enviar a n8n:', pedidoJson);
-
-      // 🔹 Simulación de envío exitoso (con pequeño delay)
-      await new Promise((resolve) => setTimeout(resolve, 800));
+    setTimeout(() => {
+      setEnviandoPedido(false);
+      setClienteSeleccionado(null);
+      setProductosDelPedido([]);
+      setComentarios('');
 
       setNotificacion({
         open: true,
-        message: `✅ Pedido enviado correctamente al servidor\nCliente: ${clienteSeleccionado?.razonSocial}\nTotal: ${totalPedido.toLocaleString('es-CO', {
-          style: 'currency',
-          currency: 'COP',
-        })}`,
+        message: '✅ Pedido enviado correctamente al servidor.',
         severity: 'success',
       });
-      resetForm();
-    } catch (error: any) {
-      setNotificacion({
-        open: true,
-        message: `❌ Error al enviar el pedido\n${error?.message || 'Error desconocido'}`,
-        severity: 'error',
-      });
-    } finally {
-      setOpenConfirm(false);
-    }
+    }, 1500);
   };
 
   return (
@@ -200,16 +230,10 @@ const PedidosPage = () => {
             <Box sx={{ width: { xs: '100%', md: '66.67%' } }}>
               <Autocomplete
                 options={listaClientes}
-                getOptionLabel={(option) =>
-                  `${option.razonSocial} - NIT: ${option.nit}`
-                }
+                getOptionLabel={(option) => `${option.razonSocial} - NIT: ${option.nit}`}
                 onChange={(_, value) => setClienteSeleccionado(value)}
-                renderInput={(params) => (
-                  <TextField {...params} label="Buscar Cliente" />
-                )}
-                isOptionEqualToValue={(option, value) =>
-                  option.id === value.id
-                }
+                renderInput={(params) => <TextField {...params} label="Buscar Cliente" />}
+                isOptionEqualToValue={(option, value) => option.id === value.id}
                 value={clienteSeleccionado}
               />
             </Box>
@@ -261,9 +285,7 @@ const PedidosPage = () => {
                   ...params.InputProps,
                   endAdornment: (
                     <>
-                      {cargandoProductos ? (
-                        <CircularProgress color="inherit" size={20} />
-                      ) : null}
+                      {cargandoProductos ? <CircularProgress color="inherit" size={20} /> : null}
                       {params.InputProps.endAdornment}
                     </>
                   ),
@@ -311,11 +333,7 @@ const PedidosPage = () => {
                             onChange={(e) =>
                               handleUpdateCantidad(p.id, parseInt(e.target.value, 10))
                             }
-                            inputProps={{
-                              min: 1,
-                              max: p.stock,
-                              style: { textAlign: 'center' },
-                            }}
+                            inputProps={{ min: 1, max: p.stock, style: { textAlign: 'center' } }}
                             sx={{ width: '80px' }}
                           />
                         </TableCell>
@@ -337,64 +355,98 @@ const PedidosPage = () => {
                     );
                   })
                 )}
+
+                {/* Totales */}
+                {productosDelPedido.length > 0 && (
+                  <>
+                    <TableRow sx={{ '& > td': { border: 0 } }}>
+                      <TableCell colSpan={5} />
+                      <TableCell align="right">
+                        <Typography variant="body2" sx={{ fontWeight: 'bold' }}>SUBTOTAL:</Typography>
+                      </TableCell>
+                      <TableCell align="right">
+                        <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                          {subtotalPedido.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+
+                    <TableRow sx={{ '& > td': { border: 0 } }}>
+                      <TableCell colSpan={5} />
+                      <TableCell align="right">
+                        <Typography variant="body2" sx={{ fontWeight: 'bold' }}>TOTAL IVA:</Typography>
+                      </TableCell>
+                      <TableCell align="right">
+                        <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                          {ivaTotal.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+
+                    <TableRow sx={{ '& > td': { border: 0 } }}>
+                      <TableCell colSpan={5} />
+                      <TableCell align="right">
+                        <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                          TOTAL:
+                        </Typography>
+                      </TableCell>
+                      <TableCell align="right">
+                        <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                          {totalPedido.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  </>
+                )}
               </TableBody>
             </Table>
           </TableContainer>
 
-          {/* Totales y comentarios */}
+          {/* Comentarios */}
           {productosDelPedido.length > 0 && (
-            <>
-              <Box textAlign="right" sx={{ mt: 2 }}>
-                <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                  SUBTOTAL: {subtotalPedido.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}
-                </Typography>
-                <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                  TOTAL IVA: {ivaTotal.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}
-                </Typography>
-                <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                  TOTAL: {totalPedido.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}
-                </Typography>
-              </Box>
-
-              <TextField
-                label="Comentarios (opcional)"
-                value={comentarios}
-                onChange={(e) => setComentarios(e.target.value.slice(0, 80))}
-                helperText={`${comentarios.length}/80 caracteres`}
-                fullWidth
-                multiline
-              />
-            </>
+            <TextField
+              label="Comentarios"
+              value={comentarios}
+              onChange={(e) => setComentarios(e.target.value.slice(0, 80))}
+              helperText={`${comentarios.length}/80`}
+              multiline
+              rows={2}
+              fullWidth
+            />
           )}
 
-          {/* Botón enviar */}
+          {/* Botón */}
           <Stack direction="row" justifyContent="flex-end">
             <Button
               variant="contained"
               color="primary"
-              onClick={() => setOpenConfirm(true)}
-              disabled={productosDelPedido.length === 0 || !clienteSeleccionado}
-              startIcon={<SendIcon />}
+              onClick={handleConfirmarEnvio}
+              disabled={productosDelPedido.length === 0 || !clienteSeleccionado || enviandoPedido}
+              startIcon={enviandoPedido ? <CircularProgress size={20} color="inherit" /> : <SendIcon />}
             >
-              Enviar Pedido
+              {enviandoPedido ? 'Enviando...' : 'Enviar Pedido'}
             </Button>
           </Stack>
         </Stack>
       </Paper>
 
-      {/* Confirmación */}
-      <Dialog open={openConfirm} onClose={() => setOpenConfirm(false)}>
-        <DialogTitle>Confirmar envío</DialogTitle>
+      {/* Diálogo de confirmación */}
+      <Dialog open={abrirDialogo} onClose={handleCancelarEnvio}>
+        <DialogTitle>Confirmar Envío</DialogTitle>
         <DialogContent>
-          <DialogContentText>
-            ¿Deseas enviar este pedido al servidor?  
-            Una vez enviado, no podrás modificarlo.
-          </DialogContentText>
+          <Typography>
+            <strong>Cliente:</strong> {clienteSeleccionado?.razonSocial}
+          </Typography>
+          <Typography>
+            <strong>Total:</strong>{' '}
+            {totalPedido.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}
+          </Typography>
+          {comentarios && <Typography><strong>Comentarios:</strong> {comentarios}</Typography>}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenConfirm(false)}>Cancelar</Button>
-          <Button onClick={handleEnviarPedidoConfirmado} variant="contained" color="primary">
-            Confirmar
+          <Button onClick={handleCancelarEnvio} color="inherit">Cancelar</Button>
+          <Button onClick={handleEnviarPedido} color="primary" variant="contained">
+            Confirmar Envío
           </Button>
         </DialogActions>
       </Dialog>
@@ -402,11 +454,11 @@ const PedidosPage = () => {
       {/* Notificaciones */}
       <Snackbar
         open={notificacion.open}
-        autoHideDuration={5000}
+        autoHideDuration={4000}
         onClose={() => setNotificacion({ ...notificacion, open: false })}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
-        <Alert severity={notificacion.severity} sx={{ whiteSpace: 'pre-line', width: '100%' }} variant="filled">
+        <Alert severity={notificacion.severity} sx={{ width: '100%' }} variant="filled">
           {notificacion.message}
         </Alert>
       </Snackbar>
