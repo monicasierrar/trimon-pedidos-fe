@@ -50,7 +50,7 @@ const PedidosPage = () => {
 
   // 🔹 Cargar clientes
   useEffect(() => {
-    getClients(localStorage.getItem("session_toke") || "" )
+    getClients(localStorage.getItem("session_token") || "" )
       .then((clients) => setListaClientes(clients))
       .catch((err) => console.error('Error fetching clients:', err));
   }, []);
