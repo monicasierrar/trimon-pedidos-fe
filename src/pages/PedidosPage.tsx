@@ -217,8 +217,9 @@ const PedidosPage = () => {
          setNotificacion({
         open: true,
         message: '❌ Pedido no pudo ser enviado.',
-        severity: 'error',
+        severity: 'error',        
       });
+        setEnviandoPedido(false);
       }
     } catch (error) {
       
