@@ -203,14 +203,14 @@ const PedidosPage = () => {
 
     try {
       const response = await guardarPedido(localStorage.getItem("session_token") || "", pedido)
-      if (response) {
+      if (response.pedido) {
         setEnviandoPedido(false);
         setClienteSeleccionado(null);
         setProductosDelPedido([]);
         setComentarios('');
         setNotificacion({
         open: true,
-        message: '✅ Pedido enviado correctamente.',
+        message: `✅ Pedido ${response.pedido.id} enviado correctamente.`,
         severity: 'success',
       });
       } else {
