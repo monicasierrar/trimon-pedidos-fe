@@ -224,34 +224,6 @@ const PedidosPage = () => {
     } catch (error) {
       
     }
-
-    // 🔹 Bloque preparado para integración con n8n (comentado)
-    /*
-    try {
-      const response = await fetch('https://tu-flujo-n8n-url', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(pedidoJson),
-      });
-      const result = await response.json();
-      console.log('Respuesta del servidor:', result);
-    } catch (error) {
-      console.error('Error enviando pedido:', error);
-    }
-    */
-
-    // setTimeout(() => {
-    //   setEnviandoPedido(false);
-    //   setClienteSeleccionado(null);
-    //   setProductosDelPedido([]);
-    //   setComentarios('');
-
-    //   setNotificacion({
-    //     open: true,
-    //     message: '✅ Pedido enviado correctamente al servidor.',
-    //     severity: 'success',
-    //   });
-    // }, 1500);
   };
 
   return (
