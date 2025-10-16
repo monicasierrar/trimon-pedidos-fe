@@ -45,7 +45,10 @@ export const productosMock: Producto[] = [
     marca: 'Bosch', 
     modelo: 'Ceramic Pro', 
     stock: 45, 
-    precio: 180000
+    precio: 180000,
+    codImpuesto: "IVA",
+    porcentajeImpuesto: 19,
+    unidad: "und"
   },
   { 
     id: 202, 
@@ -56,7 +59,10 @@ export const productosMock: Producto[] = [
     marca: 'ACDelco', 
     modelo: 'PF47', 
     stock: 120, 
-    precio: 35000
+    precio: 35000,
+    codImpuesto: "IVA",
+    porcentajeImpuesto: 19,
+    unidad: "und"
   },
   { 
     id: 203, 
@@ -67,7 +73,10 @@ export const productosMock: Producto[] = [
     marca: 'NGK', 
     modelo: 'Laser Iridium', 
     stock: 250, 
-    precio: 45000
+    precio: 45000,
+    codImpuesto: "IVA",
+    porcentajeImpuesto: 19,
+    unidad: "und"
   },
   { 
     id: 204, 
@@ -78,7 +87,10 @@ export const productosMock: Producto[] = [
     marca: 'Gabriel', 
     modelo: 'Gas Ryder', 
     stock: 30, 
-    precio: 220000
+    precio: 220000,
+    codImpuesto: "IVA",
+    porcentajeImpuesto: 19,
+    unidad: "und"
   },
 ];
 
