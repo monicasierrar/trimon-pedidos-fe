@@ -45,22 +45,28 @@ resource "aws_ecs_task_definition" "pedidos_task" {
         "awslogs-stream-prefix" = "ecs"
       }
     }
-      # mountPoints = [
-      #   {
-      #     sourceVolume  = "pedidos-data"
-      #     containerPath = "/home/node/.n8n"
-      #     readOnly      = false
-      #   }
-      # ],
+    mountPoints = [
+        {
+            sourceVolume  = "pedidos-data"
+            containerPath = "/home/node/.n8n"
+            readOnly      = false
+        }
+        ],
     }
   ])
 
-  # volume {
-  #   name = "pedidos-data" # Matches the mountPoints sourceVolume
-  #   efs_volume_configuration {
-  #     file_system_id = aws_efs_file_system.pedidos_efs.id
-  #   }
-  # }
+   volume {
+     name = "pedidos-data" # Matches the mountPoints sourceVolume
+     efs_volume_configuration {
+      file_system_id = aws_efs_file_system.pedidos_api_efs.id
+      root_directory = "/"                          # Access point root_directory will be used if access_point_id provided
+      transit_encryption = "ENABLED"
+      authorization_config {
+        access_point_id = aws_efs_access_point.pedidos_ap.id
+        iam = "ENABLED"
+      }
+    }
+   }
 
   execution_role_arn = aws_iam_role.pedidos_task_execution_role.arn
   task_role_arn      = aws_iam_role.pedidos_task_execution_role.arn
@@ -80,7 +86,7 @@ resource "aws_ecs_service" "pedidos_service" {
   network_configuration {
     subnets         = var.subnets
     security_groups = [aws_security_group.pedidos_service_sg.id]
-    assign_public_ip = true 
+    assign_public_ip = true
   }
 
   load_balancer {
