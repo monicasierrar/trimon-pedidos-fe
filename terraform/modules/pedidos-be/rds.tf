@@ -1,59 +1,59 @@
-# resource "aws_db_subnet_group" "main" {
-#   name       = "main-db-subnet-group"
-#   subnet_ids = var.private_subnets # Replace with your private subnet IDs
-#   tags = {
-#     Name = "Main DB Subnet Group"
-#   }
-# }
+resource "random_password" "db" {
+  length           = 16
+  override_special = "!@#%^&*()-_+=[]{}"
+  special          = true
+}
 
-# resource "aws_security_group" "mysql_ecs_sg" {
-#   name        = "mysql-ecs-sg"
-#   description = "Allow MySQL access from ECS tasks"
-#   vpc_id      = var.vpc_id
+resource "aws_secretsmanager_secret" "pedidos_db" {
+  name = "${var.subdomain}-pedidos-db-password-${var.environment}"
+  tags = {
+    Name = "pedidos-db-password-${var.environment}"
+  }
+}
 
-#   ingress {
-#     description      = "MySQL from ECS"
-#     from_port        = 3306
-#     to_port          = 3306
-#     protocol         = "tcp"
-#     security_groups  = [aws_security_group.pedidos_service_sg.id]
-#   }
+resource "aws_secretsmanager_secret_version" "pedidos_db_version" {
+  secret_id     = aws_secretsmanager_secret.pedidos_db.id
+  secret_string = random_password.db.result
+}
 
-#   egress {
-#     from_port   = 0
-#     to_port     = 0
-#     protocol    = "-1"
-#     cidr_blocks = ["0.0.0.0/0"]
-#   }
+resource "aws_db_subnet_group" "pedidos_db_subnet_group" {
+  name       = "${var.subdomain}-pedidos-db-subnet-group-${var.environment}"
+  subnet_ids = var.private_subnets
 
-#   tags = {
-#     Name = "mysql-ecs-sg"
-#   }
-# }
+  tags = {
+    Name = "pedidos-db-subnet-group"
+  }
+}
 
-# resource "aws_db_instance" "pedidos_mysql" {
-#   allocated_storage    = 20
-#   engine               = "mysql"
-#   engine_version       = "8.0"
-#   instance_class       = "db.t3.micro"
-#   username             = "pedidosuser"
-#   password             = "PedidosPass123!"
-#   parameter_group_name = "default.mysql8.0"
-#   skip_final_snapshot  = true
-#   publicly_accessible  = false
-#   vpc_security_group_ids = [aws_security_group.mysql_ecs_sg.id]
-#   db_subnet_group_name = aws_db_subnet_group.main.name
-#   tags = {
-#     Name = "n8n-mysql-db"
-#   }
-# }
+resource "aws_db_instance" "pedidos_db" {
+  identifier             = "${var.subdomain}-pedidos-db-${var.environment}"
+  engine                 = "mysql"
+  engine_version         = "8.0"
+  instance_class         = var.db_instance_class
+  allocated_storage      = var.db_allocated_storage
+  db_name                = var.db_name # initial DB creation
+  username               = var.db_username
+  password               = random_password.db.result
+  db_subnet_group_name   = aws_db_subnet_group.pedidos_db_subnet_group.name
+  vpc_security_group_ids = [aws_security_group.pedidos_db_sg.id]
+  skip_final_snapshot    = true
+  publicly_accessible    = false
+  deletion_protection    = false
 
-# # output "pedidos_mysql_endpoint" {
-# #   value = aws_db_instance.pedidos_mysql.endpoint
-# # }
-# # output "pedidos_mysql_username" {
-# #   value = aws_db_instance.pedidos_mysql.username
-# # }
-# # output "pedidos_mysql_db_name" {
-# #   value = aws_db_instance.pedidos_mysql.name
-# # }
+  tags = {
+    Name = "pedidos-db-${var.environment}"
+  }
+
+  # keep short for dev; tune for prod (multi_az etc.)
+  multi_az = false
+
+  depends_on = [aws_secretsmanager_secret.pedidos_db]
+}
+
+output "pedidos_db_address" {
+  value = aws_db_instance.pedidos_db.address
+}
+
+output "pedidos_db_identifier" {
+  value = aws_db_instance.pedidos_db.id
+}

@@ -1,10 +1,10 @@
 provider "aws" {
-  region = "us-east-1"
+  region  = "us-east-1"
   profile = "trimon-admin"
 }
 
 locals {
-  bucket_name   = "${var.fe_subdomain}-${var.environment}"
+  bucket_name = "${var.fe_subdomain}-${var.environment}"
 }
 # resource "aws_ecr_repository" "n8n" {
 #   name = "n8n"
@@ -67,7 +67,7 @@ resource "aws_subnet" "private" {
   tags = {
     Name = "pedidos-private-subnet-${count.index + 1}"
   }
-  depends_on = [ aws_vpc.main ]
+  depends_on = [aws_vpc.main]
 }
 
 resource "aws_internet_gateway" "main" {
@@ -140,13 +140,19 @@ resource "aws_route_table_association" "private" {
 # }
 
 module "pedidos-api" {
-  source         = "./modules/pedidos-be"
-  environment    = var.environment
-  subnets        = aws_subnet.public[*].id
-  hosted_zone_id = var.hosted_zone_id
-  vpc_id         = aws_vpc.main.id
-  subdomain =     var.be_subdomain
-  domain_name =   var.domain_name
+  source          = "./modules/pedidos-be"
+  environment     = var.environment
+  subnets         = aws_subnet.public[*].id
+  private_subnets = aws_subnet.private[*].id
+  hosted_zone_id  = var.hosted_zone_id
+  vpc_id          = aws_vpc.main.id
+  subdomain       = var.be_subdomain
+  domain_name     = var.domain_name
+
+  # Optional: override DB defaults (username/db_name/etc) if you want
+  # db_username    = "pedidosuser"
+  # db_name        = "pedidosDB"
+  # db_instance_class = "db.t3.micro"
 }
 
 output "vpc_id" {

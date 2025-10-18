@@ -21,7 +21,7 @@ resource "aws_ecs_task_definition" "pedidos_api_task" {
   container_definitions = jsonencode([
     {
       name      = "pedidos-api"
-      image     = "n8nio/n8n:1.111.0" # Updated ECR image
+      image     = "n8nio/n8n:1.111.0"
       essential = true
       portMappings = [
         {
@@ -34,20 +34,31 @@ resource "aws_ecs_task_definition" "pedidos_api_task" {
         {
           name  = "WEBHOOK_URL"
           value = "https://pedidos-api.trimon.co"
+        },
+        {
+          name  = "DB_HOST"
+          value = "${aws_db_instance.pedidos_db.address}"
+        },
+        {
+          name  = "DB_PORT"
+          value = "3306"
+        },
+        {
+          name  = "DB_USER"
+          value = "${var.db_username}"
+        },
+        {
+          name  = "DB_NAME"
+          value = "${var.db_name}"
         }
       ],
-
-      # Container-level health check for ECS
-      # ECS evaluates this to decide if a container is healthy.
-      # Use CMD-SHELL to run a curl against localhost inside the container.
-      # healthCheck = {
-      #   command     = ["CMD-SHELL", "curl -f http://localhost:5678/ || exit 1"]
-      #   interval    = 30
-      #   timeout     = 5
-      #   retries     = 3
-      #   startPeriod = 60
-      # },
-
+      # Provide the DB password via Secrets Manager (valueFrom is the secret ARN)
+      secrets = [
+        {
+          name      = "DB_PASSWORD"
+          valueFrom = "${aws_secretsmanager_secret.pedidos_db.arn}"
+        }
+      ],
       logConfiguration = {
         logDriver = "awslogs"
         options = {
@@ -67,10 +78,10 @@ resource "aws_ecs_task_definition" "pedidos_api_task" {
   ])
 
   volume {
-    name = "pedidos-data" # Matches the mountPoints sourceVolume
+    name = "pedidos-data"
     efs_volume_configuration {
       file_system_id     = aws_efs_file_system.pedidos_api_efs.id
-      root_directory     = "/" # Access point root_directory will be used if access_point_id provided
+      root_directory     = "/"
       transit_encryption = "ENABLED"
       authorization_config {
         access_point_id = aws_efs_access_point.pedidos_ap.id
@@ -82,8 +93,7 @@ resource "aws_ecs_task_definition" "pedidos_api_task" {
   execution_role_arn = aws_iam_role.pedidos_task_execution_role.arn
   task_role_arn      = aws_iam_role.pedidos_task_execution_role.arn
 
-  depends_on = [aws_cloudwatch_log_group.pedidos_api]
-
+  depends_on = [aws_cloudwatch_log_group.pedidos_api, aws_db_instance.pedidos_db]
 }
 
 resource "aws_ecs_service" "pedidos_service" {
