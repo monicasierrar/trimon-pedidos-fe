@@ -7,10 +7,20 @@ const PRODUCTS_ENDPOINT = "/productos"
 // const ORDERS_ENDPOINT = "/pedidos"
 
 
-export const getClients = async (token: string): Promise<Cliente[]> => {
-    return getData(CLIENTS_ENDPOINT, token).then(result => result.clientes)
-        .catch(err => console.log("error fetching clients ", err))
-}
+export const getClients = async (token: string, filtro?: string): Promise<Cliente[]> => {
+    // Si hay filtro, se agrega el parámetro ?search=
+    const endpoint = filtro && filtro.trim().length >= 3
+        ? `${CLIENTS_ENDPOINT}?search=${encodeURIComponent(filtro)}`
+        : CLIENTS_ENDPOINT;
+
+    return getData(endpoint, token)
+        .then(result => result.clientes)
+        .catch(err => {
+            console.log("❌ Error al obtener clientes:", err);
+            return [];
+        });
+};
+
 
 export const getProducts = async (token: string, clientenit: string, sucursalId: string): Promise<Producto[]> => {
     return getData(`${PRODUCTS_ENDPOINT}?clientenit=${clientenit}&sucursalId=${sucursalId}`, token).then(result => result.productos)
