@@ -169,8 +169,6 @@ const PedidosPage = () => {
     setEnviandoPedido(true);
     setAbrirDialogo(false);
 
-    const fechaHoy = new Date().toISOString().split('T')[0];
-
     const pedido: CrearPedido = {
       comentarios: comentarios || "",
       nit: clienteSeleccionado.nit,
@@ -182,24 +180,7 @@ const PedidosPage = () => {
 
     }
 
-    const pedidoJson = {
-      nit: clienteSeleccionado.nit,
-      sucursal: clienteSeleccionado.sucursal,
-      fecha: fechaHoy,
-      comentarios: comentarios || '',
-      subtotal: subtotalPedido,
-      iva: ivaTotal,
-      total: totalPedido,
-      detalle: productosDelPedido.map((p) => ({
-        idproducto: p.codigo,
-        cantidad: p.cantidad,
-        valor_unitario: p.precio,
-        valor_total: p.precio * p.cantidad,
-        porciva: p.porcentajeImpuesto,
-      })),
-    };
-
-    console.log('🚩 Pedido JSON generado:', pedidoJson);
+    
 
     try {
       const response = await guardarPedido(localStorage.getItem("session_token") || "", pedido)
@@ -282,7 +263,7 @@ const PedidosPage = () => {
           {/* Productos */}
           <Autocomplete
             options={listaProductos}
-            getOptionLabel={(option) => option.codigo}
+            getOptionLabel={(option) => `${option.codigo} | Código: ${option.nombre} | Marca: ${option.marca} | Stock: ${option.stock}`}
             onChange={(_, value) => handleAddProducto(value)}
             renderInput={(params) => (
               <TextField
