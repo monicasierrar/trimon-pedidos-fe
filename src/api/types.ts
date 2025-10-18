@@ -2,7 +2,7 @@ export interface Cliente {
   id: number;
   nit: string;
   razonSocial: string;
-  sucursal: string;
+  sucursal: number;
   telefono: string;
   direccion: string;
   departamento: string;
@@ -41,4 +41,16 @@ export interface Transaccion {
   id: string; // Corresponde al número del pedido
   fecha: string; // Formato "YYYY-MM-DD"
   estado: 'Procesado' | 'Error' | 'Pendiente';
+}
+
+export interface ProductoPedido {
+  cantidad: number;
+  idProducto: string;
+}
+
+export interface CrearPedido {
+  comentarios: string;
+  idsuc: number;
+  nit: string;
+  productos: ProductoPedido[]
 }

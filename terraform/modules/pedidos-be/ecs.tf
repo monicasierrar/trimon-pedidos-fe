@@ -11,8 +11,8 @@ resource "aws_ecs_cluster" "pedidos_cluster" {
   name = "pedidos-cluster"
 }
 
-resource "aws_ecs_task_definition" "pedidos_task" {
-  family                   = "pedidos-task"
+resource "aws_ecs_task_definition" "pedidos_api_task" {
+  family                   = "pedidos-api-task"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   cpu                      = "512"
@@ -37,50 +37,67 @@ resource "aws_ecs_task_definition" "pedidos_task" {
         }
       ],
 
-    logConfiguration = {
-      logDriver = "awslogs"
-      options = {
-        "awslogs-group"         = "/ecs/pedidos-api"
-        "awslogs-region"        = "us-east-1"
-        "awslogs-stream-prefix" = "ecs"
+      # Container-level health check for ECS
+      # ECS evaluates this to decide if a container is healthy.
+      # Use CMD-SHELL to run a curl against localhost inside the container.
+      # healthCheck = {
+      #   command     = ["CMD-SHELL", "curl -f http://localhost:5678/ || exit 1"]
+      #   interval    = 30
+      #   timeout     = 5
+      #   retries     = 3
+      #   startPeriod = 60
+      # },
+
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          "awslogs-group"         = "/ecs/pedidos-api"
+          "awslogs-region"        = "us-east-1"
+          "awslogs-stream-prefix" = "ecs"
+        }
       }
-    }
-      # mountPoints = [
-      #   {
-      #     sourceVolume  = "pedidos-data"
-      #     containerPath = "/home/node/.n8n"
-      #     readOnly      = false
-      #   }
-      # ],
+      mountPoints = [
+        {
+          sourceVolume  = "pedidos-data"
+          containerPath = "/home/node/.n8n"
+          readOnly      = false
+        }
+      ],
     }
   ])
 
-  # volume {
-  #   name = "pedidos-data" # Matches the mountPoints sourceVolume
-  #   efs_volume_configuration {
-  #     file_system_id = aws_efs_file_system.pedidos_efs.id
-  #   }
-  # }
+  volume {
+    name = "pedidos-data" # Matches the mountPoints sourceVolume
+    efs_volume_configuration {
+      file_system_id     = aws_efs_file_system.pedidos_api_efs.id
+      root_directory     = "/" # Access point root_directory will be used if access_point_id provided
+      transit_encryption = "ENABLED"
+      authorization_config {
+        access_point_id = aws_efs_access_point.pedidos_ap.id
+        iam             = "ENABLED"
+      }
+    }
+  }
 
   execution_role_arn = aws_iam_role.pedidos_task_execution_role.arn
   task_role_arn      = aws_iam_role.pedidos_task_execution_role.arn
 
- depends_on = [aws_cloudwatch_log_group.pedidos_api]
+  depends_on = [aws_cloudwatch_log_group.pedidos_api]
 
 }
 
 resource "aws_ecs_service" "pedidos_service" {
-  name            = "pedidos-service"
-  cluster         = aws_ecs_cluster.pedidos_cluster.id
-  task_definition = aws_ecs_task_definition.pedidos_task.arn
-  desired_count   = 1
-  launch_type     = "FARGATE"
+  name                              = "pedidos-service"
+  cluster                           = aws_ecs_cluster.pedidos_cluster.id
+  task_definition                   = aws_ecs_task_definition.pedidos_api_task.arn
+  desired_count                     = 1
+  launch_type                       = "FARGATE"
   health_check_grace_period_seconds = 60
 
   network_configuration {
-    subnets         = var.subnets
-    security_groups = [aws_security_group.pedidos_service_sg.id]
-    assign_public_ip = true 
+    subnets          = var.subnets
+    security_groups  = [aws_security_group.pedidos_service_sg.id]
+    assign_public_ip = true
   }
 
   load_balancer {

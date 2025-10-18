@@ -1,5 +1,5 @@
 import axios, { AxiosResponse } from "axios";
-import { Cliente, Producto } from "./types";
+import { Cliente, CrearPedido, Producto } from "./types";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 const CLIENTS_ENDPOINT = "/clientes"
@@ -22,6 +22,11 @@ export const getUserInfo = async (token: string): Promise<any> => {
         .catch(err => console.log("error fetching user info ", err))
 }
 
+export const guardarPedido = async (token: string, pedido: CrearPedido) => {
+    return postData(token, "/pedidos", pedido)
+    .catch(err => console.log("error creando pedido: ", err))
+}
+
 
 const getData = async (endpoint: string, token: string, params?: Record<string, any>): Promise<any> => {
     try {
@@ -38,13 +43,16 @@ const getData = async (endpoint: string, token: string, params?: Record<string, 
     }
 };
 
-// Function to perform a POST request
-// const postData = async (endpoint: string, data: Record<string, any>): Promise<any> => {
-//     try {
-//         const response: AxiosResponse = await axios.post(`${API_BASE_URL}${endpoint}`, data);
-//         return response.data; // Return the response data
-//     } catch (error) {
-//         console.error('Error during POST request:', error);
-//         throw error; // Re-throw the error for further handling
-//     }
-// };
+const postData = async (token: string, endpoint: string, data: Record<string, any>): Promise<any> => {
+    try {
+        const response: AxiosResponse = await axios.post(`${API_BASE_URL}${endpoint}`, data, {
+            headers: {
+            Authorization: `Bearer ${token || ''}`, // Add Bearer token if provided
+            }
+        });
+        return response.data; // Return the response data
+    } catch (error) {
+        console.error('Error during POST request:', error);
+        throw error; // Re-throw the error for further handling
+    }
+};

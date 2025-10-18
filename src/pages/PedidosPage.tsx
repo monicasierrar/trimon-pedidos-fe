@@ -28,8 +28,8 @@ import {
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SendIcon from '@mui/icons-material/Send';
-import { Cliente, PedidoProducto, Producto } from '../api/types';
-import { getClients, getProducts } from '../api/apiClient';
+import { Cliente, CrearPedido, PedidoProducto, Producto, ProductoPedido } from '../api/types';
+import { getClients, getProducts, guardarPedido } from '../api/apiClient';
 
 const PedidosPage = () => {
   const [clienteSeleccionado, setClienteSeleccionado] = useState<Cliente | null>(null);
@@ -50,7 +50,7 @@ const PedidosPage = () => {
 
   // 🔹 Cargar clientes
   useEffect(() => {
-    getClients(localStorage.getItem("session_toke") || "" )
+    getClients(localStorage.getItem("session_token") || "" )
       .then((clients) => setListaClientes(clients))
       .catch((err) => console.error('Error fetching clients:', err));
   }, []);
@@ -171,6 +171,17 @@ const PedidosPage = () => {
 
     const fechaHoy = new Date().toISOString().split('T')[0];
 
+    const pedido: CrearPedido = {
+      comentarios: comentarios || "",
+      nit: clienteSeleccionado.nit,
+      idsuc: clienteSeleccionado.sucursal,
+      productos: productosDelPedido.map((pedido) => ({
+        idProducto: pedido.codigo,
+        cantidad: pedido.cantidad
+      } as ProductoPedido))
+
+    }
+
     const pedidoJson = {
       nit: clienteSeleccionado.nit,
       sucursal: clienteSeleccionado.sucursal,
@@ -190,33 +201,29 @@ const PedidosPage = () => {
 
     console.log('🚩 Pedido JSON generado:', pedidoJson);
 
-    // 🔹 Bloque preparado para integración con n8n (comentado)
-    /*
     try {
-      const response = await fetch('https://tu-flujo-n8n-url', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(pedidoJson),
-      });
-      const result = await response.json();
-      console.log('Respuesta del servidor:', result);
-    } catch (error) {
-      console.error('Error enviando pedido:', error);
-    }
-    */
-
-    setTimeout(() => {
-      setEnviandoPedido(false);
-      setClienteSeleccionado(null);
-      setProductosDelPedido([]);
-      setComentarios('');
-
-      setNotificacion({
+      const response = await guardarPedido(localStorage.getItem("session_token") || "", pedido)
+      if (response.pedido) {
+        setEnviandoPedido(false);
+        setClienteSeleccionado(null);
+        setProductosDelPedido([]);
+        setComentarios('');
+        setNotificacion({
         open: true,
-        message: '✅ Pedido enviado correctamente al servidor.',
+        message: `✅ Pedido ${response.pedido.id} enviado correctamente.`,
         severity: 'success',
       });
-    }, 1500);
+      } else {
+         setNotificacion({
+        open: true,
+        message: '❌ Pedido no pudo ser enviado.',
+        severity: 'error',        
+      });
+        setEnviandoPedido(false);
+      }
+    } catch (error) {
+      
+    }
   };
 
   return (
