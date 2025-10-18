@@ -1,21 +1,33 @@
 {
-  "name": "My workflow 3",
+  "name": "v25.1.1",
   "nodes": [
     {
       "parameters": {
-        "url": "https://ws.dsnube.co/api/v1/consultasql?consulta=SELECT SP.idproducto AS \"Código\", mp.nombreproducto AS \"Producto\", Familia, Grupo, Marca, Modelo, SP.disponible AS \"Disponible\", SP.idunidad AS \"Unidad\", CASE ( SELECT listaprecios FROM matercerosuc WHERE nit = '900339960' AND idsuc = '1' LIMIT 1 ) WHEN 1 THEN mp.lista1 WHEN 2 THEN mp.lista2 WHEN 3 THEN mp.lista3 WHEN 4 THEN mp.lista4 WHEN 5 THEN mp.lista5 WHEN 6 THEN mp.lista6 ELSE NULL END AS \"Precio\", imp.porcentaje, imp.codimp FROM SPSALDOSINVENTARIO (CURRENT_DATE,'N','','','S','JCORTES') SP INNER JOIN maproductos mp ON SP.idproducto = mp.idproducto INNER JOIN vpareto_producto ON SP.idproducto = vpareto_producto.idproducto INNER JOIN maperfilproducto pf ON mp.idperfil = pf.idperfil INNER JOIN maimpuestos imp ON imp.codimp = pf.ivaventa WHERE SP.SALDO > 0 AND mp.activo = 'S'AND SP.idbodega = '1' AND SP.idproducto like %27LS-%25%27 ORDER BY 1, 2",
+        "url": "=https://ws.dsnube.co/api/v1/consultasql?",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpBasicAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "consulta",
+              "value": "={{ $json.consulta }}"
+            }
+          ]
+        },
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [
-        176,
-        2224
-      ],
+      "position": [384, 2224],
       "id": "c4f85434-4b81-4d69-91be-ce53290b7b53",
-      "name": "GET Clients"
+      "name": "GET Clients",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "iZmm7J8xuJY9SSCi",
+          "name": "ERP"
+        }
+      }
     },
     {
       "parameters": {
@@ -23,10 +35,7 @@
       },
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.4,
-      "position": [
-        320,
-        3216
-      ],
+      "position": [320, 3216],
       "id": "82ba8283-b6e5-49b9-8b06-fbaaff519419",
       "name": "Respond to Webhook1"
     },
@@ -39,12 +48,15 @@
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [
-        -224,
-        3072
-      ],
+      "position": [-208, 3088],
       "id": "333b7d5b-3e5a-4ff2-868f-d7d071472318",
-      "name": "GET Products"
+      "name": "GET Products",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "iZmm7J8xuJY9SSCi",
+          "name": "ERP"
+        }
+      }
     },
     {
       "parameters": {
@@ -52,10 +64,7 @@
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        0,
-        3088
-      ],
+      "position": [0, 3088],
       "id": "3e872aee-842a-4efb-a787-5203497a66fc",
       "name": "Mapear productos"
     },
@@ -70,10 +79,7 @@
       },
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [
-        -1808,
-        4064
-      ],
+      "position": [-1808, 4064],
       "id": "a6883ff5-bee4-4a30-9e9f-bae4598c5ae1",
       "name": "Crear pedidos",
       "webhookId": "19999818-0dc3-427d-a445-46ff31dd0f4d"
@@ -88,10 +94,7 @@
       },
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [
-        -1616,
-        3536
-      ],
+      "position": [-1616, 3536],
       "id": "0c9f0688-0e0d-4e92-ab28-9014267a1dad",
       "name": "Buscar productos",
       "webhookId": "5601307a-55d7-434c-aea4-277f219b00df"
@@ -106,10 +109,7 @@
       },
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [
-        -1392,
-        2768
-      ],
+      "position": [-1392, 2768],
       "id": "354e51f3-9572-4122-9fb3-ea711df734d5",
       "name": "Buscar clientes",
       "webhookId": "b26350c7-d273-4727-a890-3e3629f76c27"
@@ -120,10 +120,7 @@
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        544,
-        2192
-      ],
+      "position": [752, 2192],
       "id": "9315171b-b452-4722-b8bd-5923bf723dfd",
       "name": "Mapear clientes"
     },
@@ -138,10 +135,7 @@
       },
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [
-        -1696,
-        3392
-      ],
+      "position": [-1696, 3392],
       "id": "ff4e5f45-b1f4-4348-8fd2-bf1f38f7d971",
       "name": "Buscar productos options",
       "webhookId": "23d6619f-ceac-4be4-b1d3-15bcfc8c8f07"
@@ -152,10 +146,7 @@
       },
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.4,
-      "position": [
-        784,
-        2416
-      ],
+      "position": [992, 2416],
       "id": "127fab98-50c7-4eb8-8213-ed0c5d31ef0a",
       "name": "Respond to Webhook"
     },
@@ -170,10 +161,7 @@
       },
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [
-        -1776,
-        4256
-      ],
+      "position": [-1776, 4256],
       "id": "35afe3e8-9bb2-4f96-ab37-08047a57563d",
       "name": "Crear pedidos1",
       "webhookId": "f24a1e47-1696-45d2-82f6-7f229be99703"
@@ -225,12 +213,15 @@
       },
       "type": "n8n-nodes-base.mySql",
       "typeVersion": 2.5,
-      "position": [
-        1776,
-        3968
-      ],
+      "position": [1776, 3968],
       "id": "b1c935ea-c458-41b1-ab30-0c29b73a9bc0",
-      "name": "Insertar pedido en la tabla"
+      "name": "Insertar pedido en la tabla",
+      "credentials": {
+        "mySql": {
+          "id": "G0qkj4zstxDVRtx2",
+          "name": "MySQL account"
+        }
+      }
     },
     {
       "parameters": {
@@ -238,10 +229,7 @@
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        2960,
-        3536
-      ],
+      "position": [2960, 3536],
       "id": "7981de55-55cb-4f3c-8934-cf6cf834f6c0",
       "name": "Constuir el payload del pedido para ERP"
     },
@@ -271,10 +259,7 @@
       },
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [
-        3584,
-        3328
-      ],
+      "position": [3584, 3328],
       "id": "14f492fc-805e-4f2b-a8c0-b866b7aa80a9",
       "name": "If"
     },
@@ -302,12 +287,15 @@
       },
       "type": "n8n-nodes-base.mySql",
       "typeVersion": 2.5,
-      "position": [
-        4032,
-        3104
-      ],
+      "position": [4864, 3104],
       "id": "0a0e80ee-4902-43f2-a25e-eb8809decaf9",
-      "name": "Actualizar pedido como guardado"
+      "name": "Actualizar pedido como guardado",
+      "credentials": {
+        "mySql": {
+          "id": "G0qkj4zstxDVRtx2",
+          "name": "MySQL account"
+        }
+      }
     },
     {
       "parameters": {
@@ -325,7 +313,7 @@
           "values": [
             {
               "column": "id_estado",
-              "value": "3"
+              "value": "4"
             }
           ]
         },
@@ -333,12 +321,15 @@
       },
       "type": "n8n-nodes-base.mySql",
       "typeVersion": 2.5,
-      "position": [
-        3824,
-        3760
-      ],
+      "position": [4656, 3760],
       "id": "3fa8c2a7-c397-49d5-8225-534b4a37bec8",
-      "name": "Actualizar pedido con error"
+      "name": "Actualizar pedido con error",
+      "credentials": {
+        "mySql": {
+          "id": "G0qkj4zstxDVRtx2",
+          "name": "MySQL account"
+        }
+      }
     },
     {
       "parameters": {
@@ -346,10 +337,7 @@
       },
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.4,
-      "position": [
-        4304,
-        3968
-      ],
+      "position": [5136, 3968],
       "id": "fd0b3d47-0db2-4d2e-8fc5-c56af9f61dba",
       "name": "Respuesta error pedido"
     },
@@ -361,10 +349,7 @@
       },
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.4,
-      "position": [
-        4736,
-        3376
-      ],
+      "position": [5776, 3344],
       "id": "3eb4b8c3-2b7f-461b-8646-816005dc5cf4",
       "name": "Respuesta ok pedido"
     },
@@ -374,10 +359,7 @@
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        2144,
-        3936
-      ],
+      "position": [2144, 3936],
       "id": "a7721dd4-ebf1-4edc-9280-7ef5ef607969",
       "name": "Mapear detalle"
     },
@@ -387,10 +369,7 @@
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        -1104,
-        4304
-      ],
+      "position": [-1104, 4304],
       "id": "093b0481-0197-4b5a-84f1-5dfc8ed78f79",
       "name": "Mapear pedido"
     },
@@ -400,10 +379,7 @@
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        -176,
-        3856
-      ],
+      "position": [-176, 3856],
       "id": "805114b2-cdcc-43af-a936-1b03e5c3285a",
       "name": "QueryVendedor"
     },
@@ -416,12 +392,15 @@
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [
-        80,
-        4048
-      ],
+      "position": [80, 4048],
       "id": "f508b905-eb14-4063-b04c-67248e13ee62",
-      "name": "Get vendedor id"
+      "name": "Get vendedor id",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "iZmm7J8xuJY9SSCi",
+          "name": "ERP"
+        }
+      }
     },
     {
       "parameters": {
@@ -429,10 +408,7 @@
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        368,
-        4112
-      ],
+      "position": [368, 4112],
       "id": "c13d0a75-c01f-4b26-b9cf-fa0f91cb6c3a",
       "name": "Mapear id vendedor"
     },
@@ -444,42 +420,9 @@
       },
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
-      "position": [
-        640,
-        3808
-      ],
+      "position": [640, 3808],
       "id": "1575901c-a9af-4cff-b376-c393c62a3fe9",
       "name": "Componer vendedor info"
-    },
-    {
-      "parameters": {
-        "workflowId": {
-          "__rl": true,
-          "value": "ayQ7pITwU67JziRZ",
-          "mode": "id"
-        },
-        "workflowInputs": {
-          "mappingMode": "defineBelow",
-          "value": {},
-          "matchingColumns": [],
-          "schema": [],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": true
-        },
-        "options": {
-          "waitForSubWorkflow": true
-        }
-      },
-      "type": "n8n-nodes-base.executeWorkflow",
-      "typeVersion": 1.2,
-      "position": [
-        -944,
-        2576
-      ],
-      "id": "84df88c8-9775-4fa4-b316-221d8457c6ec",
-      "name": "Call 'GetUserInfo'",
-      "alwaysOutputData": false,
-      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -489,10 +432,7 @@
       },
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.4,
-      "position": [
-        1616,
-        3184
-      ],
+      "position": [1824, 3184],
       "id": "a92a1cc9-5166-4ff9-8ebf-1e3153863a24",
       "name": "No Authorizado"
     },
@@ -500,7 +440,7 @@
       "parameters": {
         "workflowId": {
           "__rl": true,
-          "value": "ayQ7pITwU67JziRZ",
+          "value": "lbbPigwzL1zoCCVG",
           "mode": "id"
         },
         "workflowInputs": {
@@ -517,10 +457,7 @@
       },
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.2,
-      "position": [
-        -1280,
-        3344
-      ],
+      "position": [-1280, 3344],
       "id": "5830b32e-9ca1-473b-bd94-86a35b15b6ce",
       "name": "Call 'GetUserInfo'1",
       "alwaysOutputData": false,
@@ -528,14 +465,11 @@
     },
     {
       "parameters": {
-        "jsCode": "let clienteNit = $('Buscar productos').first().json.query.clientenit \nlet sucursalId = $('Buscar productos').first().json.query.sucursalId\nlet consulta = ` SELECT SP.idproducto AS \"Código\", mp.nombreproducto AS \"Producto\", Familia, Grupo, Marca, Modelo, SP.disponible AS \"Disponible\", SP.idunidad, SP.idbodega, CASE ( SELECT listaprecios FROM matercerosuc WHERE nit = '` +clienteNit+`' AND idsuc = `+sucursalId+` LIMIT 1 ) WHEN 1 THEN mp.lista1 WHEN 2 THEN mp.lista2 WHEN 3 THEN mp.lista3 WHEN 4 THEN mp.lista4 WHEN 5 THEN mp.lista5 WHEN 6 THEN mp.lista6 ELSE NULL END AS \"Precio\", imp.porcentaje, imp.codimp FROM SPSALDOSINVENTARIO (CURRENT_DATE,'N','','','S','JCORTES') SP INNER JOIN maproductos mp ON SP.idproducto = mp.idproducto INNER JOIN vpareto_producto ON SP.idproducto = vpareto_producto.idproducto INNER JOIN maperfilproducto pf ON mp.idperfil = pf.idperfil INNER JOIN maimpuestos imp ON imp.codimp = pf.ivaventa WHERE SP.SALDO > 0 AND mp.activo = 'S'AND SP.idbodega = '1' ORDER BY 1, 2 ` \nreturn  ({ clienteNit, sucursalId, consulta }) "
+        "jsCode": "let clienteNit = $('Buscar productos').first().json.query.clientenit \nlet sucursalId = $('Buscar productos').first().json.query.sucursalId\nconst search = $('Buscar productos').first().json.query.search\nlet consulta = `SELECT SP.idproducto AS \"Código\", mp.nombreproducto AS \"Producto\", Familia, Grupo, Marca, Modelo, SP.disponible AS \"Disponible\", SP.idunidad AS \"Unidad\", CASE ( SELECT listaprecios FROM matercerosuc WHERE nit = '900339960' AND idsuc = '1' LIMIT 1 ) WHEN 1 THEN mp.lista1 WHEN 2 THEN mp.lista2 WHEN 3 THEN mp.lista3 WHEN 4 THEN mp.lista4 WHEN 5 THEN mp.lista5 WHEN 6 THEN mp.lista6 ELSE NULL END AS \"Precio\", imp.porcentaje, imp.codimp FROM SPSALDOSINVENTARIO (CURRENT_DATE,'N','','','S','JCORTES') SP INNER JOIN maproductos mp ON SP.idproducto = mp.idproducto INNER JOIN vpareto_producto ON SP.idproducto = vpareto_producto.idproducto INNER JOIN maperfilproducto pf ON mp.idperfil = pf.idperfil INNER JOIN maimpuestos imp ON imp.codimp = pf.ivaventa WHERE SP.SALDO > 0 AND mp.activo = 'S'AND SP.idbodega = '${sucursalId}'`\nif(search) {\n  consulta += `AND SP.idproducto like '%${search}%` \n}\n\nconsulta += `ORDER BY 1, 2`\n\nreturn  ({ clienteNit, sucursalId, consulta }) "
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        -528,
-        3056
-      ],
+      "position": [-528, 3056],
       "id": "94aa67db-6086-4670-bf6a-bce86c2f595f",
       "name": "Extraer cliente y sucursal"
     },
@@ -566,10 +500,7 @@
       },
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [
-        -832,
-        2832
-      ],
+      "position": [-832, 2832],
       "id": "081a4728-c3d2-4688-a526-e7c5ec2877fc",
       "name": "Hay error1"
     },
@@ -600,10 +531,7 @@
       },
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [
-        -816,
-        3712
-      ],
+      "position": [-816, 3712],
       "id": "dc0708fa-123c-4991-9faf-649e7eeb968a",
       "name": "If1"
     },
@@ -611,7 +539,7 @@
       "parameters": {
         "workflowId": {
           "__rl": true,
-          "value": "ayQ7pITwU67JziRZ",
+          "value": "lbbPigwzL1zoCCVG",
           "mode": "id"
         },
         "workflowInputs": {
@@ -628,10 +556,7 @@
       },
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.2,
-      "position": [
-        -1232,
-        3728
-      ],
+      "position": [-1232, 3728],
       "id": "3b2d4672-516e-4454-946c-a343935035a7",
       "name": "Call 'GetUserInfo'2",
       "alwaysOutputData": false,
@@ -647,10 +572,7 @@
       },
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [
-        -1392,
-        2576
-      ],
+      "position": [-1392, 2576],
       "id": "93cc3160-ea00-47d3-a13a-849d838b4690",
       "name": "Buscar clientes options",
       "webhookId": "6d571b5d-84d6-40de-b0e7-67c0f5c65fa8"
@@ -663,10 +585,7 @@
       },
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
-      "position": [
-        1440,
-        4240
-      ],
+      "position": [1440, 4240],
       "id": "85a22bdd-383e-4070-b774-813904cf7a2e",
       "name": "Componer request"
     },
@@ -679,12 +598,15 @@
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [
-        3104,
-        3888
-      ],
+      "position": [3104, 3888],
       "id": "dca63da3-ff0f-4430-bba5-34c0c68ff290",
-      "name": "GET Products1"
+      "name": "GET Products1",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "iZmm7J8xuJY9SSCi",
+          "name": "ERP"
+        }
+      }
     },
     {
       "parameters": {
@@ -692,10 +614,7 @@
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        1024,
-        3856
-      ],
+      "position": [1024, 3856],
       "id": "cf5c83c3-7a66-4189-ba4a-f7831b62ebb5",
       "name": "Mapear vendedor"
     },
@@ -708,12 +627,15 @@
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [
-        -592,
-        4048
-      ],
+      "position": [-592, 4048],
       "id": "4a297b36-738e-4248-8483-779e8ed3441d",
-      "name": "Get Sucursal info"
+      "name": "Get Sucursal info",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "iZmm7J8xuJY9SSCi",
+          "name": "ERP"
+        }
+      }
     },
     {
       "parameters": {
@@ -721,10 +643,7 @@
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        384,
-        4656
-      ],
+      "position": [384, 4656],
       "id": "79b75c92-66d6-429c-9a30-a5f9e984dcf7",
       "name": "Componer pedido y sucursal"
     },
@@ -734,36 +653,27 @@
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        2816,
-        3360
-      ],
+      "position": [2816, 3360],
       "id": "c74503a1-b102-4b81-81e2-b333a4289e97",
       "name": "Pedido completo"
     },
     {
       "parameters": {
-        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nlet consulta = ` SELECT SP.idproducto AS \"Código\", mp.nombreproducto AS \"Producto\", Familia, Grupo, Marca, Modelo, SP.disponible AS \"Disponible\", SP.idunidad, SP.idbodega, CASE ( SELECT listaprecios FROM matercerosuc WHERE nit = '` + $('Componer pedido y sucursal').first().json.sucursal.nit +`' AND idsuc = `+ $('Componer pedido y sucursal').first().json.sucursal.sucursal +` LIMIT 1 ) WHEN 1 THEN mp.lista1 WHEN 2 THEN mp.lista2 WHEN 3 THEN mp.lista3 WHEN 4 THEN mp.lista4 WHEN 5 THEN mp.lista5 WHEN 6 THEN mp.lista6 ELSE NULL END AS \"Precio\", imp.porcentaje, imp.codimp FROM SPSALDOSINVENTARIO (CURRENT_DATE,'N','','','S','JCORTES') SP INNER JOIN maproductos mp ON SP.idproducto = mp.idproducto INNER JOIN vpareto_producto ON SP.idproducto = vpareto_producto.idproducto INNER JOIN maperfilproducto pf ON mp.idperfil = pf.idperfil INNER JOIN maimpuestos imp ON imp.codimp = pf.ivaventa WHERE SP.SALDO > 0 AND mp.activo = 'S'AND SP.idbodega = '1' AND SP.idproducto = '` + $input.first().json.idProducto +`' ORDER BY 1, 2 ` \nconst { cantidad, idproducto, idPedido } = $input.first().json\n\nreturn {consulta, cantidad, idProducto: idproducto, idPedido};"
+        "jsCode": "const { cantidad, idProducto, idPedido } = $input.first().json\n\nlet consulta = ` SELECT SP.idproducto AS \"Código\", mp.nombreproducto AS \"Producto\", Familia, Grupo, Marca, Modelo, SP.disponible AS \"Disponible\", SP.idunidad, SP.idbodega, CASE ( SELECT listaprecios FROM matercerosuc WHERE nit = '` + $('Componer pedido y sucursal').first().json.sucursal.nit +`' AND idsuc = `+ $('Componer pedido y sucursal').first().json.sucursal.sucursal +` LIMIT 1 ) WHEN 1 THEN mp.lista1 WHEN 2 THEN mp.lista2 WHEN 3 THEN mp.lista3 WHEN 4 THEN mp.lista4 WHEN 5 THEN mp.lista5 WHEN 6 THEN mp.lista6 ELSE NULL END AS \"Precio\", imp.porcentaje, imp.codimp FROM SPSALDOSINVENTARIO (CURRENT_DATE,'N','','','S','JCORTES') SP INNER JOIN maproductos mp ON SP.idproducto = mp.idproducto INNER JOIN vpareto_producto ON SP.idproducto = vpareto_producto.idproducto INNER JOIN maperfilproducto pf ON mp.idperfil = pf.idperfil INNER JOIN maimpuestos imp ON imp.codimp = pf.ivaventa WHERE SP.SALDO > 0 AND mp.activo = 'S'AND SP.idbodega = '1' AND SP.idproducto = '` + idProducto +`' ORDER BY 1, 2 ` \n\nreturn {consulta, cantidad, idProducto, idPedido};"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        2800,
-        3840
-      ],
+      "position": [2800, 3840],
       "id": "3471129d-0974-4b20-9c36-ddffacfabb8d",
       "name": "item de pedido"
     },
     {
       "parameters": {
-        "jsCode": "let detailInfo = $input.first().json.result[0]\nlet item = $('Get product info').first().json\nitem.porciva = detailInfo.porcentaje\nitem.precio = detailInfo.Precio\nitem.subtotal = item.precio * item.cantidad\nitem.neto = item.subtotal\nitem.iva = item.neto * item.porciva / 100\n\nitem.valorBruto = item.neto + item.iva\n\nreturn { item, detailInfo };"
+        "jsCode": "let detailInfo = $input.first().json.result[0]\nlet item = $('Get product info').first().json\nitem.porcentajeImpuesto = detailInfo.porcentaje\nitem.precio = detailInfo.Precio\nitem.subtotal = item.precio * item.cantidad\nitem.neto = item.subtotal\nitem.iva = item.neto * item.porcentajeImpuesto / 100\nitem.codigoImpuesto = detailInfo.codimp\nitem.idPedido = $('Insertar pedido en la tabla').first().json.data.insertId\n\nitem.valorBruto = item.neto + item.iva\n\nreturn { item, detailInfo };"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        3264,
-        3936
-      ],
+      "position": [3264, 3936],
       "id": "8f7b4d57-f0c2-456a-8a14-12b8e8696c3a",
       "name": "item y detalle info"
     },
@@ -773,10 +683,7 @@
       },
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
-      "position": [
-        2592,
-        3760
-      ],
+      "position": [2592, 3760],
       "id": "cded059e-1ad6-44f7-9fa5-2da0fe424e48",
       "name": "Get product info"
     },
@@ -792,7 +699,7 @@
         "valuesToSend": {
           "values": [
             {
-              "column": "id_pedido",
+              "column": "pedido_id",
               "value": "={{ $input.first().json.item.idPedido }}"
             },
             {
@@ -815,12 +722,15 @@
       },
       "type": "n8n-nodes-base.mySql",
       "typeVersion": 2.5,
-      "position": [
-        3456,
-        3984
-      ],
+      "position": [3456, 3984],
       "id": "bb2dc519-2cd4-460c-93f0-7e895e98ad1a",
-      "name": "Insertar detalle pedido en la tabla1"
+      "name": "Insertar detalle pedido en la tabla1",
+      "credentials": {
+        "mySql": {
+          "id": "G0qkj4zstxDVRtx2",
+          "name": "MySQL account"
+        }
+      }
     },
     {
       "parameters": {
@@ -828,10 +738,7 @@
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        3648,
-        4032
-      ],
+      "position": [3648, 4032],
       "id": "1322f0a5-c2de-4b17-a4c4-6a55564ee160",
       "name": "set detalle id"
     },
@@ -862,10 +769,7 @@
       },
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [
-        -304,
-        2496
-      ],
+      "position": [-304, 2496],
       "id": "52502eac-5b24-4e09-a4e5-e6a4e457a1b6",
       "name": "Sin error"
     },
@@ -882,12 +786,15 @@
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [
-        3200,
-        3280
-      ],
+      "position": [3200, 3280],
       "id": "11ac6fc1-ff70-4c56-a964-a6b4c84c18c7",
-      "name": "POST pedido"
+      "name": "POST pedido",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "iZmm7J8xuJY9SSCi",
+          "name": "ERP"
+        }
+      }
     },
     {
       "parameters": {
@@ -898,12 +805,15 @@
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [
-        3680,
-        6016
-      ],
+      "position": [3680, 6016],
       "id": "fd3bf581-173e-4520-b5e2-3dd32e65f4bd",
-      "name": "HTTP Request1"
+      "name": "HTTP Request1",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "iZmm7J8xuJY9SSCi",
+          "name": "ERP"
+        }
+      }
     },
     {
       "parameters": {
@@ -912,10 +822,7 @@
       },
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.4,
-      "position": [
-        4112,
-        5440
-      ],
+      "position": [4112, 5440],
       "id": "670655c6-1ca6-42e6-a2f6-a5b8f88fe8b4",
       "name": "Respond to Webhook5"
     },
@@ -925,10 +832,7 @@
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        3344,
-        5904
-      ],
+      "position": [3344, 5904],
       "id": "d5305d11-bdc2-41dd-ad1a-4641d0f51b8c",
       "name": "Code in JavaScript1"
     },
@@ -936,7 +840,7 @@
       "parameters": {
         "workflowId": {
           "__rl": true,
-          "value": "ayQ7pITwU67JziRZ",
+          "value": "lbbPigwzL1zoCCVG",
           "mode": "id"
         },
         "workflowInputs": {
@@ -953,10 +857,7 @@
       },
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.2,
-      "position": [
-        -944,
-        5040
-      ],
+      "position": [-944, 5040],
       "id": "b55fb67f-6146-47e4-b631-e78564d80179",
       "name": "Call 'GetUserInfo'4",
       "alwaysOutputData": false,
@@ -989,10 +890,7 @@
       },
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [
-        -16,
-        5296
-      ],
+      "position": [-16, 5296],
       "id": "6415544f-bff0-45a9-985e-52dc3ab1d673",
       "name": "If2"
     },
@@ -1004,10 +902,7 @@
       },
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.4,
-      "position": [
-        1632,
-        5168
-      ],
+      "position": [1632, 5168],
       "id": "70266157-29f4-4e5f-a762-aaf760e03fdd",
       "name": "No Authorizado1"
     },
@@ -1017,10 +912,7 @@
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        1248,
-        5904
-      ],
+      "position": [1248, 5904],
       "id": "5d148e5c-95a8-4520-9c02-d51b25e8012c",
       "name": "QueryVendedor1"
     },
@@ -1033,12 +925,15 @@
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [
-        2000,
-        6112
-      ],
+      "position": [2000, 6112],
       "id": "2167bbf9-218a-4c6e-a81a-d1bfc84e9312",
-      "name": "Get vendedor id1"
+      "name": "Get vendedor id1",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "iZmm7J8xuJY9SSCi",
+          "name": "ERP"
+        }
+      }
     },
     {
       "parameters": {
@@ -1046,10 +941,7 @@
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        2688,
-        6128
-      ],
+      "position": [2688, 6128],
       "id": "55022f53-361f-4b2f-a246-511651b8dd77",
       "name": "Mapear id vendedor1"
     },
@@ -1061,10 +953,7 @@
       },
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
-      "position": [
-        3136,
-        6096
-      ],
+      "position": [3136, 6096],
       "id": "fa54661b-80a0-4cb0-b1c8-f528d09bbf8e",
       "name": "Componer vendedor info1"
     },
@@ -1074,10 +963,7 @@
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        3824,
-        5760
-      ],
+      "position": [3824, 5760],
       "id": "982a23e7-0bea-492b-90c6-2788ce599a2f",
       "name": "Code in JavaScript3"
     },
@@ -1089,47 +975,50 @@
       },
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
-      "position": [
-        -1760,
-        4832
-      ],
+      "position": [-1760, 4832],
       "id": "2a2f8aa7-8247-4edd-9c7e-d95b71afa40b",
       "name": "Historial-pedidos",
       "webhookId": "097dc9c5-82e8-4828-990b-ddecef370c8e"
     },
     {
-      "parameters": {},
+      "parameters": {
+        "mailagent": "74347d727301a3de",
+        "fromaddress": {
+          "address": "info@trimon.co"
+        },
+        "toaddress": "santiagopenasierra@gmail.com,gabrielsimpsons@gmail.com",
+        "subject": "We're back on business guys",
+        "htmlbody": "={{ $json.html }}",
+        "cc": "monicasierrar@gmail.com",
+        "attachment": {}
+      },
       "type": "n8n-nodes-zohozeptomail.zohoZeptomail",
       "typeVersion": 1,
-      "position": [
-        4032,
-        3360
-      ],
+      "position": [5008, 3424],
       "id": "d28e8615-7ece-4666-b256-279a2b7895f9",
       "name": "Send Mail",
-      "credentials": {}
+      "credentials": {
+        "zohoZeptomailOAuth2Api": {
+          "id": "8qWizyQeAJIlgGEh",
+          "name": "Zoho ZeptoMail account"
+        }
+      }
     },
     {
       "parameters": {},
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
-      "position": [
-        4416,
-        3376
-      ],
+      "position": [5456, 3328],
       "id": "09d656e8-a010-4ed5-b7e4-006565befe87",
       "name": "Merge"
     },
     {
       "parameters": {
-        "html": "<!DOCTYPE html>\n<html lang=\"es\">\n<head>\n  <meta charset=\"UTF-8\">\n  <title>Orden de Pedido</title>\n  <style>\n    body {\n      font-family: Arial, sans-serif;\n      margin: 0;\n      padding: 0;\n      background: #f5f5f5;\n    }\n    .container {\n      width: 90%;\n      max-width: 800px;\n      margin: 20px auto;\n      background: #fff;\n      padding: 20px;\n      border: 1px solid #ddd;\n    }\n    .header {\n      margin-bottom: 20px;\n    }\n    .header-table {\n      width: 100%;\n    }\n    .header-table td {\n      vertical-align: top;\n      padding: 5px;\n    }\n    .header img {\n      max-width: 120px;\n    }\n    .header-info {\n      text-align: right;\n      font-size: 14px;\n      line-height: 1.3;\n      color: #444;\n    }\n    .section {\n      margin-bottom: 20px;\n    }\n    .section h2 {\n      font-size: 16px;\n      border-bottom: 1px solid #ddd;\n      padding-bottom: 5px;\n      margin-bottom: 10px;\n      color: #444;\n    }\n    .section p {\n      line-height: 1.4;\n      margin: 2px 0;\n      font-size: 14px;\n    }\n    table {\n      width: 100%;\n      border-collapse: collapse;\n      font-size: 14px;\n    }\n    th, td {\n      border: 1px solid #ddd;\n      padding: 6px;\n      text-align: center;\n    }\n    th {\n      background: #f0f0f0;\n      font-weight: bold;\n    }\n    .totales {\n      margin-top: 20px;\n      width: 100%;\n    }\n    .totales td {\n      padding: 6px;\n    }\n    .totales .label {\n      text-align: right;\n      font-weight: bold;\n      background: #f9f9f9;\n    }\n    .totales .value {\n      text-align: right;\n    }\n    .footer {\n      margin-top: 30px;\n      font-size: 12px;\n      color: #777;\n      text-align: center;\n    }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <!-- Encabezado con logo y datos -->\n    <div class=\"header\">\n      <table class=\"header-table\">\n        <tr>\n          <td>\n            <!-- Logo dummy -->\n            <img src=\"https://via.placeholder.com/120x60.png?text=LOGO\" alt=\"Logo Empresa\">\n          </td>\n          <td class=\"header-info\">\n            <strong>BTRES S.A.S</strong><br>\n            NIT: 900.587.306-2<br>\n            CLL 68 N°87-40<br>\n            BOGOTA DC - BOGOTA<br>\n            PBX: 4370408 / 9260050 CEL: 317 501 26 42<br>\n            www.trimon.co<br>\n            Email: Contabilidad@trimon.co\n          </td>\n        </tr>\n      </table>\n      <hr>\n      <h1 style=\"text-align:center; margin:10px 0;\">Orden de Pedido</h1>\n      <p style=\"text-align:center; margin:2px 0;\"><strong>No. Pedido:</strong>{{ $('Pedido completo').item.json.pedido.id }}</p>\n      <p style=\"text-align:center; margin:2px 0;\"><strong>Fecha:</strong> 2025-07-11</p>\n    </div>\n\n    <!-- Cliente -->\n    <div class=\"section\">\n      <h2>Datos del Cliente</h2>\n      <p><strong>Razón Social:</strong>{{ $('Pedido completo').item.json.sucursal.razonsocial }}</p>\n      <p><strong>NIT:</strong> 900690339</p>\n      <p><strong>Sucursal:</strong> 1 - Bogotá Norte</p>\n      <p><strong>Dirección:</strong> CR 27A 65 55, BOGOTA - Bogota D.C</p>\n    </div>\n\n    <!-- Productos -->\n    <div class=\"section\">\n      <h2>Detalle de Productos</h2>\n      <table>\n        <thead>\n          <tr>\n            <th>Pos</th>\n            <th>Código</th>\n            <th>Cantidad</th>\n            <th>Unidad</th>\n            <th>Precio Unitario</th>\n            <th>Subtotal</th>\n            <th>IVA</th>\n            <th>Total</th>\n          </tr>\n        </thead>\n        <tbody>\n          <tr>\n            <td>1</td>\n            <td>BUM-ZNM-01</td>\n            <td>4</td>\n            <td>Und</td>\n            <td>$93,600</td>\n            <td>$231,120</td>\n            <td>$43,912.8</td>\n            <td>$275,032.8</td>\n          </tr>\n          <tr>\n            <td>2</td>\n            <td>BUM-RWD-170</td>\n            <td>2</td>\n            <td>Und</td>\n            <td>$81,200</td>\n            <td>$97,440</td>\n            <td>$18,513.6</td>\n            <td>$115,953.6</td>\n          </tr>\n        </tbody>\n      </table>\n    </div>\n\n    <!-- Totales -->\n    <div class=\"section\">\n      <h2>Totales</h2>\n      <table class=\"totales\">\n        <tr>\n          <td class=\"label\">Subtotal:</td>\n          <td class=\"value\">$328,560</td>\n        </tr>\n        <tr>\n          <td class=\"label\">IVA:</td>\n          <td class=\"value\">$62,426</td>\n        </tr>\n        <tr>\n          <td class=\"label\">Total a Pagar:</td>\n          <td class=\"value\"><strong>$390,986</strong></td>\n        </tr>\n      </table>\n    </div>\n\n    <!-- Comentarios -->\n    <div class=\"section\">\n      <h2>Comentarios</h2>\n      <p>Comentarios pruebas pedido</p>\n    </div>\n\n    <!-- Pie -->\n    <div class=\"footer\">\n      <p>Este documento es generado electrónicamente y no requiere firma.</p>\n    </div>\n  </div>\n</body>\n</html>\n\n"
+        "html": "<!DOCTYPE html>\n<html lang=\"es\">\n<head>\n  <meta charset=\"UTF-8\">\n  <title>Orden de Pedido</title>\n  <style>\n    body {\n      font-family: Arial, sans-serif;\n      margin: 0;\n      padding: 0;\n      background: #f5f5f5;\n    }\n    .container {\n      width: 90%;\n      max-width: 800px;\n      margin: 20px auto;\n      background: #fff;\n      padding: 20px;\n      border: 1px solid #ddd;\n    }\n    .header {\n      margin-bottom: 20px;\n    }\n    .header-table {\n      width: 100%;\n    }\n    .header-table td {\n      vertical-align: top;\n      padding: 5px;\n    }\n    .header img {\n      max-width: 120px;\n    }\n    .header-info {\n      text-align: right;\n      font-size: 14px;\n      line-height: 1.3;\n      color: #444;\n    }\n    .section {\n      margin-bottom: 20px;\n    }\n    .section h2 {\n      font-size: 16px;\n      border-bottom: 1px solid #ddd;\n      padding-bottom: 5px;\n      margin-bottom: 10px;\n      color: #444;\n    }\n    .section p {\n      line-height: 1.4;\n      margin: 2px 0;\n      font-size: 14px;\n    }\n    table {\n      width: 100%;\n      border-collapse: collapse;\n      font-size: 14px;\n    }\n    th, td {\n      border: 1px solid #ddd;\n      padding: 6px;\n      text-align: center;\n    }\n    th {\n      background: #f0f0f0;\n      font-weight: bold;\n    }\n    .totales {\n      margin-top: 20px;\n      width: 100%;\n    }\n    .totales td {\n      padding: 6px;\n    }\n    .totales .label {\n      text-align: right;\n      font-weight: bold;\n      background: #f9f9f9;\n    }\n    .totales .value {\n      text-align: right;\n    }\n    .footer {\n      margin-top: 30px;\n      font-size: 12px;\n      color: #777;\n      text-align: center;\n    }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <!-- Encabezado con logo y datos -->\n    <div class=\"header\">\n      <table class=\"header-table\">\n        <tr>\n          <td>\n            <!-- Logo dummy -->\n            <img src=\"https://pedidos.trimon.co/assets/logo-BkBSmhWf.png\" alt=\"Logo Empresa\">\n          </td>\n          <td class=\"header-info\">\n            <strong>BTRES S.A.S</strong><br>\n            NIT: 900.587.306-2<br>\n            CLL 68 N°87-40<br>\n            BOGOTA DC - BOGOTA<br>\n            PBX: 4370408 / 9260050 CEL: 317 501 26 42<br>\n            www.trimon.co<br>\n            Email: Contabilidad@trimon.co\n          </td>\n        </tr>\n      </table>\n      <hr>\n      <h1 style=\"text-align:center; margin:10px 0;\">Orden de Pedido</h1>\n      <p style=\"text-align:center; margin:2px 0;\"><strong>No. Pedido:</strong>{{ $('Pedido completo').item.json.pedido.id }}</p>\n      <p style=\"text-align:center; margin:2px 0;\"><strong>Fecha:</strong> {{ $now.format('yyyy-MM-dd') }}</p>\n    </div>\n\n    <!-- Cliente -->\n    <div class=\"section\">\n      <h2>Datos del Cliente</h2>\n      <p><strong>Razón Social:</strong>{{ $('Pedido completo').item.json.sucursal.razonsocial }}</p>\n      <p><strong>NIT:</strong> {{ $('Pedido completo').item.json.sucursal.nit }}</p>\n      <p><strong>Sucursal:</strong> {{ $('Pedido completo').item.json.sucursal.sucursal }}</p>\n      <p><strong>Dirección:</strong> {{ $('Pedido completo').item.json.sucursal.direccion1 }}, {{ $('Pedido completo').item.json.sucursal.ciudad }}, {{ $('Pedido completo').item.json.sucursal.departamento }}</p>\n    </div>\n\n    <!-- Productos -->\n    <div class=\"section\">\n      <h2>Detalle de Productos</h2>\n      <table>\n        <thead>\n          <tr>\n            <th>Código</th>\n            <th>Cantidad</th>\n            <th>Unidad</th>\n            <th>Precio Unitario</th>\n            <th>Subtotal</th>\n            <th>IVA</th>\n            <th>Total</th>\n          </tr>\n        </thead>\n        <tbody>\n          {{ $json.itemsHtml }}\n        </tbody>\n      </table>\n    </div>\n\n    <!-- Totales -->\n    <div class=\"section\">\n      <h2>Totales</h2>\n      <table class=\"totales\">\n        <tr>\n          <td class=\"label\">Subtotal:</td>\n          <td class=\"value\">{{ $json.subtotal.toLocaleString('es-CO', {\n    style: 'currency',\n    currency: 'COP',\n    minimumFractionDigits: 0, // Colombian Peso is often displayed without cents\n    maximumFractionDigits: 0\n}) }}</td>\n        </tr>\n        <tr>\n          <td class=\"label\">IVA:</td>\n          <td class=\"value\">{{ $json.iva.toLocaleString('es-CO', {\n    style: 'currency',\n    currency: 'COP',\n    minimumFractionDigits: 0, // Colombian Peso is often displayed without cents\n    maximumFractionDigits: 0\n}) }}</td>\n        </tr>\n        <tr>\n          <td class=\"label\">Total a Pagar:</td>\n          <td class=\"value\"><strong>{{ $json.total.toLocaleString('es-CO', {\n    style: 'currency',\n    currency: 'COP',\n    minimumFractionDigits: 0, // Colombian Peso is often displayed without cents\n    maximumFractionDigits: 0\n}) }}</strong></td>\n        </tr>\n      </table>\n    </div>\n\n    <!-- Comentarios -->\n    <div class=\"section\">\n      <h2>Comentarios</h2>\n      <p>Comentarios pruebas pedido</p>\n    </div>\n\n    <!-- Pie -->\n    <div class=\"footer\">\n      <p>Este documento es generado electrónicamente y no requiere firma.</p>\n    </div>\n  </div>\n</body>\n</html>\n\n"
       },
       "type": "n8n-nodes-base.html",
       "typeVersion": 1.2,
-      "position": [
-        3872,
-        3408
-      ],
+      "position": [4704, 3408],
       "id": "35d274b7-3027-476a-84f3-d9e8ced3f9b8",
       "name": "HTML"
     },
@@ -1139,10 +1028,7 @@
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        480,
-        320
-      ],
+      "position": [480, 320],
       "id": "41109aa1-c005-4798-b937-c37a04e44491",
       "name": "Code"
     },
@@ -1173,10 +1059,7 @@
       },
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [
-        1056,
-        192
-      ],
+      "position": [1056, 192],
       "id": "fd215886-ef97-40b8-8866-d532c06f0703",
       "name": "error"
     },
@@ -1186,10 +1069,7 @@
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        1408,
-        352
-      ],
+      "position": [1408, 352],
       "id": "883dbe28-1a29-4d32-af22-b375ad8e84a7",
       "name": "Code1"
     },
@@ -1199,10 +1079,7 @@
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        1536,
-        128
-      ],
+      "position": [1536, 128],
       "id": "127c9b9c-5d77-47f5-95e6-b59eea92a3ac",
       "name": "Code3"
     },
@@ -1216,10 +1093,7 @@
       },
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [
-        48,
-        368
-      ],
+      "position": [48, 368],
       "id": "cb176cea-f86a-466a-9bda-943942340d9c",
       "name": "Authorize code",
       "webhookId": "8341ddec-a4fb-47eb-b000-c0a6f84ca021"
@@ -1235,10 +1109,7 @@
       },
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [
-        48,
-        208
-      ],
+      "position": [48, 208],
       "id": "19637da6-a07c-4112-831d-151c934ddb19",
       "name": "Authorize code options",
       "webhookId": "2ec96214-9dba-4d40-b232-48c80897a302"
@@ -1277,10 +1148,7 @@
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [
-        784,
-        320
-      ],
+      "position": [784, 320],
       "id": "7197e3c2-e586-46bf-b114-a46ad390d258",
       "name": "Get token"
     },
@@ -1294,10 +1162,7 @@
       },
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [
-        160,
-        752
-      ],
+      "position": [160, 752],
       "id": "7decd825-6db8-4732-8e97-e4c5f562c1e8",
       "name": "User info",
       "webhookId": "783236cc-6349-4ce7-9532-e106ee755aec"
@@ -1308,10 +1173,7 @@
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        1360,
-        784
-      ],
+      "position": [1360, 784],
       "id": "21205ccb-fd39-4e08-9b3d-e13265285248",
       "name": "Code6"
     },
@@ -1326,10 +1188,7 @@
       },
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [
-        160,
-        880
-      ],
+      "position": [160, 880],
       "id": "09c7b03f-d057-4278-a176-d44c113589cf",
       "name": "User info options",
       "webhookId": "2c97e397-ca1f-431a-9155-be04e4b4c422"
@@ -1344,10 +1203,7 @@
       },
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.4,
-      "position": [
-        1616,
-        432
-      ],
+      "position": [1616, 432],
       "id": "c754c4ce-4b8f-4872-88f5-e0bf701d5b91",
       "name": "Respond to Webhook3"
     },
@@ -1359,10 +1215,7 @@
       },
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.4,
-      "position": [
-        1712,
-        80
-      ],
+      "position": [1712, 80],
       "id": "f1698d71-2fa2-4da0-a5bf-ebff2acaa8cf",
       "name": "Respond to Webhook4"
     },
@@ -1373,10 +1226,7 @@
         "width": 1968
       },
       "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        0,
-        0
-      ],
+      "position": [0, 0],
       "typeVersion": 1,
       "id": "765322ae-ad36-4837-a888-4142ae3394a6",
       "name": "Sticky Note1"
@@ -1402,10 +1252,7 @@
       },
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.2,
-      "position": [
-        448,
-        656
-      ],
+      "position": [448, 656],
       "id": "7dbb9d65-a55d-42de-a86c-f66fed92600f",
       "name": "Call 'GetUserInfo'3",
       "alwaysOutputData": false
@@ -1418,10 +1265,7 @@
       },
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.4,
-      "position": [
-        1184,
-        480
-      ],
+      "position": [1184, 480],
       "id": "cd198899-b430-4620-b2be-a3c7156d2bc3",
       "name": "Respond to Webhook2"
     },
@@ -1452,10 +1296,7 @@
       },
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [
-        976,
-        576
-      ],
+      "position": [976, 576],
       "id": "e1747213-f86c-4dcd-9dbe-f32af54103da",
       "name": "Hay error2"
     },
@@ -1469,16 +1310,312 @@
       },
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [
-        48,
-        560
-      ],
+      "position": [48, 560],
       "id": "3b72881a-71ae-409e-aa24-3a4012be4d8f",
       "name": "Authorize code1",
       "webhookId": "8341ddec-a4fb-47eb-b000-c0a6f84ca021"
+    },
+    {
+      "parameters": {
+        "table": {
+          "__rl": true,
+          "value": "pedido",
+          "mode": "list",
+          "cachedResultName": "pedido"
+        },
+        "dataMode": "defineBelow",
+        "valuesToSend": {
+          "values": [
+            {
+              "column": "id_estado",
+              "value": "=1"
+            },
+            {
+              "column": "nit",
+              "value": "={{ $json.sucursal.nit }}"
+            },
+            {
+              "column": "formaPagoId",
+              "value": "=1"
+            },
+            {
+              "column": "sucursal",
+              "value": "={{ JSON.stringify($json.sucursal) }}"
+            },
+            {
+              "column": "email_vendedor",
+              "value": "={{ $json.vendedor.email }}"
+            },
+            {
+              "column": "id_vendedor",
+              "value": "={{ $json.vendedor.idVendedor }}"
+            },
+            {
+              "column": "comentario",
+              "value": "={{ $json.pedido.comentarios }}"
+            }
+          ]
+        },
+        "options": {
+          "detailedOutput": true
+        }
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [992, 8624],
+      "id": "585c9fcb-7e91-4dd9-80a2-958f77671a02",
+      "name": "Insertar pedido en la tabla1",
+      "credentials": {
+        "mySql": {
+          "id": "G0qkj4zstxDVRtx2",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $('Pedido completo').first().json.pedido.items\n\nlet subtotal = 0\nlet iva = 0\nlet total = 0\nlet itemsHtml = ``\nfor(const item of items) {\n  itemsHtml += `\n    <tr>\n      <td>${item.item.idProducto}</td>\n      <td>${item.item.cantidad}</td>\n      <td>${item.info.idunidad}</td>\n      <td>$${item.item.precio.toLocaleString('es-CO', {\n    style: 'currency',\n    currency: 'COP',\n    minimumFractionDigits: 0, // Colombian Peso is often displayed without cents\n    maximumFractionDigits: 0\n}) }</td>\n      <td>$${item.item.subtotal.toLocaleString('es-CO', {\n    style: 'currency',\n    currency: 'COP',\n    minimumFractionDigits: 0, // Colombian Peso is often displayed without cents\n    maximumFractionDigits: 0\n}) }</td>\n      <td>$${item.item.iva.toLocaleString('es-CO', {\n    style: 'currency',\n    currency: 'COP',\n    minimumFractionDigits: 0, // Colombian Peso is often displayed without cents\n    maximumFractionDigits: 0\n}) }</td>\n      <td>$${item.item.valorBruto.toLocaleString('es-CO', {\n    style: 'currency',\n    currency: 'COP',\n    minimumFractionDigits: 0, // Colombian Peso is often displayed without cents\n    maximumFractionDigits: 0\n}) }</td>\n    </tr>\n  `\n  subtotal += item.item.subtotal\n  iva += item.item.iva\n  total += item.item.valorBruto\n  \n}\n\nreturn [{\n  itemsHtml, iva, subtotal, total\n}]"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [4352, 3424],
+      "id": "db882148-0267-4bac-8d86-e8ff8fd9f87f",
+      "name": "Preparar items de factura"
+    },
+    {
+      "parameters": {
+        "jsCode": "const { search } = $('Buscar clientes').first().json.query\nlet consulta = `select nit,razonsocial,idsuc sucursal,idformapago,telefono1,direccion1,departamento,ciudad from matercerosuc`\nif(search ) {\n consulta += `where razonsocial like '%${search.toUpperCase()}%'` \n}\nconsulta += ` order by razonsocial`\nreturn {\n  consulta,\n  search\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [80, 2352],
+      "id": "377beb56-e9d8-4a2b-b189-d2893971997c",
+      "name": "extraer parametros"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "lbbPigwzL1zoCCVG",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [-944, 2576],
+      "id": "84df88c8-9775-4fa4-b316-221d8457c6ec",
+      "name": "Call 'Get user info'",
+      "alwaysOutputData": false,
+      "onError": "continueRegularOutput"
     }
   ],
-  "pinData": {},
+  "pinData": {
+    "Crear pedidos": [
+      {
+        "json": {
+          "headers": {
+            "x-forwarded-for": "24.202.192.175",
+            "x-forwarded-proto": "https",
+            "x-forwarded-port": "443",
+            "host": "pedidos-api.trimon.co",
+            "x-amzn-trace-id": "Root=1-68f408f5-118a85f41b063bda655ae9ef",
+            "content-length": "275",
+            "accept": "application/json",
+            "authorization": "Bearer 1000.ee284f1b60d56da22309c9f391391fc0.ae361db22b65a7970a2da4852e651ed3",
+            "content-type": "application/json"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "comentarios": "Comentarios pruebas pedido",
+            "sucursal": 1,
+            "nit": 900690339,
+            "productos": [
+              {
+                "cantidad": 4,
+                "idProducto": "BUM-ZNM-01"
+              },
+              {
+                "cantidad": 2,
+                "idProducto": "BUM-RWD-170"
+              }
+            ]
+          },
+          "webhookUrl": "https://pedidos-api.trimon.co/webhook-test/pedidos",
+          "executionMode": "test"
+        }
+      }
+    ],
+    "Constuir el payload del pedido para ERP": [
+      {
+        "json": {
+          "codigo": 200,
+          "erpPayload": {
+            "documento": {
+              "encabezado": {
+                "comentarios": "Comentarios pruebas pedido",
+                "fecha": "2025-10-18",
+                "idsuc": 1,
+                "idvendedor": 2,
+                "numero": 40000109,
+                "totalDet": 2,
+                "nit": 900690339,
+                "iva": 157586,
+                "subtotal": 829400,
+                "total": 986986,
+                "usuario": "VEND",
+                "prefijo": "PEV"
+              },
+              "detalle": [
+                {
+                  "cantidad": 4,
+                  "codimp": "IVA01",
+                  "idproducto": "BUM-ZNM-01",
+                  "idunidad": "Und",
+                  "iva": 89604,
+                  "neto": 471600,
+                  "pos": 1,
+                  "precio": 117900,
+                  "subtotal": 471600,
+                  "unidades": 4,
+                  "valorbruto": 561204,
+                  "factor": 1,
+                  "idbodega": "1",
+                  "operacion": "SA",
+                  "porcdcto": 0,
+                  "vdescuento": 0
+                },
+                {
+                  "cantidad": 2,
+                  "codimp": "IVA01",
+                  "idproducto": "BUM-RWD-170",
+                  "idunidad": "Und",
+                  "iva": 67982,
+                  "neto": 357800,
+                  "pos": 2,
+                  "precio": 178900,
+                  "subtotal": 357800,
+                  "unidades": 2,
+                  "valorbruto": 425782,
+                  "factor": 1,
+                  "idbodega": "1",
+                  "operacion": "SA",
+                  "porcdcto": 0,
+                  "vdescuento": 0
+                }
+              ],
+              "impuesto": [
+                {
+                  "base_calculo": 829400,
+                  "codimp": "IVA01",
+                  "liquida": "S",
+                  "valor": 157586
+                }
+              ],
+              "pago": [
+                {
+                  "idformapago": 1,
+                  "valor": 986986
+                }
+              ],
+              "sucursal": {
+                "idsuc": 0,
+                "nit": 900690339
+              }
+            }
+          }
+        }
+      }
+    ],
+    "Buscar clientes": [
+      {
+        "json": {
+          "headers": {
+            "x-forwarded-for": "24.202.192.175",
+            "x-forwarded-proto": "https",
+            "x-forwarded-port": "443",
+            "host": "pedidos-api.trimon.co",
+            "x-amzn-trace-id": "Root=1-68f4168a-6f32a93b1a311444452c1df3",
+            "content-length": "284",
+            "accept": "application/json",
+            "authorization": "Bearer 1000.35ea4b6395145b4730cae4334d879793.560865f9742def9655d6afaa581c1ecc",
+            "content-type": "application/json"
+          },
+          "params": {},
+          "query": {
+            "search": "drog"
+          },
+          "body": {
+            "from": {
+              "address": "noreply@trimon.co"
+            },
+            "to": [
+              {
+                "email_address": {
+                  "address": "gabrielsimpsons@gmail.com",
+                  "name": "Gabriel"
+                }
+              }
+            ],
+            "subject": "Test Email11",
+            "htmlbody": "<div><b> Test email sent successfully. </b></div>"
+          },
+          "webhookUrl": "https://pedidos-api.trimon.co/webhook-test/clientes",
+          "executionMode": "test"
+        }
+      }
+    ],
+    "Buscar productos": [
+      {
+        "json": {
+          "headers": {
+            "x-forwarded-for": "24.202.192.175",
+            "x-forwarded-proto": "https",
+            "x-forwarded-port": "443",
+            "host": "pedidos-api.trimon.co",
+            "x-amzn-trace-id": "Root=1-68f41a68-2b354ba33b5794410243de25",
+            "content-length": "284",
+            "accept": "application/json",
+            "authorization": "Bearer 1000.35ea4b6395145b4730cae4334d879793.560865f9742def9655d6afaa581c1ecc",
+            "content-type": "application/json"
+          },
+          "params": {},
+          "query": {
+            "clientenit": "1116256526",
+            "sucursalId": "0"
+          },
+          "body": {
+            "from": {
+              "address": "noreply@trimon.co"
+            },
+            "to": [
+              {
+                "email_address": {
+                  "address": "gabrielsimpsons@gmail.com",
+                  "name": "Gabriel"
+                }
+              }
+            ],
+            "subject": "Test Email11",
+            "htmlbody": "<div><b> Test email sent successfully. </b></div>"
+          },
+          "webhookUrl": "https://pedidos-api.trimon.co/webhook-test/productos",
+          "executionMode": "test"
+        }
+      }
+    ]
+  },
   "connections": {
     "GET Clients": {
       "main": [
@@ -1544,7 +1681,7 @@
       "main": [
         [
           {
-            "node": "Call 'GetUserInfo'",
+            "node": "Call 'Get user info'",
             "type": "main",
             "index": 0
           }
@@ -1593,7 +1730,7 @@
             "index": 0
           },
           {
-            "node": "HTML",
+            "node": "Preparar items de factura",
             "type": "main",
             "index": 0
           }
@@ -1694,17 +1831,6 @@
         [
           {
             "node": "Mapear vendedor",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Call 'GetUserInfo'": {
-      "main": [
-        [
-          {
-            "node": "Sin error",
             "type": "main",
             "index": 0
           }
@@ -1912,7 +2038,7 @@
       "main": [
         [
           {
-            "node": "GET Clients",
+            "node": "extraer parametros",
             "type": "main",
             "index": 0
           }
@@ -2182,14 +2308,70 @@
           }
         ]
       ]
+    },
+    "HTML": {
+      "main": [
+        [
+          {
+            "node": "Send Mail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Mail": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Preparar items de factura": {
+      "main": [
+        [
+          {
+            "node": "HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "extraer parametros": {
+      "main": [
+        [
+          {
+            "node": "GET Clients",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'Get user info'": {
+      "main": [
+        [
+          {
+            "node": "Sin error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "a81b5d38-f4fb-40ec-97ad-353420bbb101",
+  "versionId": "837a739d-4b2b-4e85-8e38-01cd58884ecd",
   "meta": {
+    "templateCredsSetupCompleted": true,
     "instanceId": "d34057ca63c4e01d59e567c76aa634478b977634d1c05c3acfd890eff199f6d3"
   },
   "id": "49VaBBj4PjCoI3r1",
