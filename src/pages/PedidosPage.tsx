@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { AppLayout } from '../components/AppLayout';
 import {
   Autocomplete,
@@ -25,67 +25,43 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  InputAdornment,
 } from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SendIcon from '@mui/icons-material/Send';
+import ClearIcon from '@mui/icons-material/Clear';
 import { Cliente, CrearPedido, PedidoProducto, Producto, ProductoPedido } from '../api/types';
 import { getClients, getProducts, guardarPedido } from '../api/apiClient';
 
-const PedidosPage = () => {
+const PedidosPage: React.FC = () => {
+  // Estados principales
   const [clienteSeleccionado, setClienteSeleccionado] = useState<Cliente | null>(null);
-  const [productosDelPedido, setProductosDelPedido] = useState<PedidoProducto[]>([]);
   const [listaClientes, setListaClientes] = useState<Cliente[]>([]);
   const [listaProductos, setListaProductos] = useState<Producto[]>([]);
-  const [cargandoProductos, setCargandoProductos] = useState(false);
+  const [productosDelPedido, setProductosDelPedido] = useState<PedidoProducto[]>([]);
   const [comentarios, setComentarios] = useState('');
-  const [enviandoPedido, setEnviandoPedido] = useState(false);
-  const [abrirDialogo, setAbrirDialogo] = useState(false);
-
   const [fechaPedido, setFechaPedido] = useState('');
+  const [busquedaCliente, setBusquedaCliente] = useState('');
+  const [buscandoClientes, setBuscandoClientes] = useState(false);
+  const [cargandoProductos, setCargandoProductos] = useState(false);
+  const [mostrarListaClientes, setMostrarListaClientes] = useState(false);
+
+  // Notificaciones
   const [notificacion, setNotificacion] = useState({
     open: false,
     message: '',
     severity: 'success' as 'success' | 'error' | 'info',
   });
 
-  // 🔹 Cargar clientes
-  useEffect(() => {
-    getClients(localStorage.getItem("session_token") || "" )
-      .then((clients) => setListaClientes(clients))
-      .catch((err) => console.error('Error fetching clients:', err));
-  }, []);
+  // Diálogo de confirmación / envío
+  const [abrirDialogo, setAbrirDialogo] = useState(false);
+  const [enviandoPedido, setEnviandoPedido] = useState(false);
 
-  // 🔹 Cargar productos según cliente
-  useEffect(() => {
-    if (clienteSeleccionado) {
-      setCargandoProductos(true);
-      setListaProductos([]);
-      setProductosDelPedido([]);
+  // Derivado: habilitar productos sólo cuando hay cliente y listaProductos cargada
+  const productosHabilitados = !!clienteSeleccionado && listaProductos.length > 0;
 
-      getProducts(localStorage.getItem('session_token') || '', clienteSeleccionado.nit, clienteSeleccionado.sucursal.toString())
-        .then((productos) => {
-          setListaProductos(productos);
-          setNotificacion({
-            open: true,
-            message: '✅ Productos cargados correctamente',
-            severity: 'success',
-          });
-        })
-        .catch(() => {
-          setNotificacion({
-            open: true,
-            message: '❌ Error al cargar productos',
-            severity: 'error',
-          });
-        })
-        .finally(() => setCargandoProductos(false));
-    } else {
-      setListaProductos([]);
-      setProductosDelPedido([]);
-    }
-  }, [clienteSeleccionado]);
-
-  // 🔹 Fecha del pedido
+  // Fecha inicial
   useEffect(() => {
     setFechaPedido(
       new Date().toLocaleDateString('es-CO', {
@@ -96,179 +72,308 @@ const PedidosPage = () => {
     );
   }, []);
 
-  // 🔹 Agregar producto con validación de duplicados y stock
-  const handleAddProducto = (producto: Producto | null) => {
-    if (!producto) return;
+  // -------- Función: limpiar TODO al volver al estado inicial --------
+  const resetToInitial = () => {
+    setClienteSeleccionado(null);
+    setListaClientes([]);
+    setListaProductos([]);
+    setProductosDelPedido([]);
+    setComentarios('');
+    setBusquedaCliente('');
+    setMostrarListaClientes(false);
+    setNotificacion({ open: false, message: '', severity: 'success' });
+  };
 
-    const existe = productosDelPedido.some((p) => p.id === producto.id);
-    if (existe) {
+  // -------- Buscar clientes (al presionar lupa) --------
+  const handleBuscarClientes = async () => {
+    const termino = busquedaCliente.trim().toUpperCase();
+
+    if (termino.length < 3) {
       setNotificacion({
         open: true,
-        message: `⚠️ El producto ${producto.nombre} ya fue agregado.`,
+        message: 'Ingrese al menos 3 letras para buscar.',
         severity: 'info',
       });
       return;
     }
 
-    if (producto.stock <= 0) {
+    // Limpieza completa antes de la búsqueda (según requeriste)
+    setClienteSeleccionado(null);
+    setListaProductos([]);
+    setProductosDelPedido([]);
+    setComentarios('');
+    setMostrarListaClientes(false);
+    setListaClientes([]);
+
+    setBuscandoClientes(true);
+    try {
+      const token = localStorage.getItem('session_token') || '';
+      const clientes = await getClients(token, termino);
+      setListaClientes(clientes || []);
+      setMostrarListaClientes(true);
+
+      if (!clientes || clientes.length === 0) {
+        setNotificacion({
+          open: true,
+          message: 'No se encontraron clientes.',
+          severity: 'info',
+        });
+      }
+    } catch (error) {
       setNotificacion({
         open: true,
-        message: `❌ El producto ${producto.nombre} no tiene stock disponible.`,
+        message: 'Error al buscar clientes.',
+        severity: 'error',
+      });
+    } finally {
+      setBuscandoClientes(false);
+    }
+  };
+
+  // -------- Al seleccionar cliente: cargar productos y limpiar lista de clientes --------
+  const handleSeleccionarCliente = (cliente: Cliente) => {
+    setClienteSeleccionado(cliente);
+    // limpiar la lista de clientes mostrada después de seleccionar (según solicitaste)
+    setListaClientes([]);
+    setMostrarListaClientes(false);
+    // dejar campo de búsqueda con el nombre si deseas (opcional)
+    setBusquedaCliente(`${cliente.razonSocial} - ${cliente.nit}`);
+    // La carga real de productos se hace en el useEffect que sigue
+  };
+
+  // -------- useEffect: cargar productos cuando cambia el cliente seleccionado --------
+  useEffect(() => {
+    const cargar = async () => {
+      if (!clienteSeleccionado) {
+        setListaProductos([]);
+        setProductosDelPedido([]);
+        return;
+      }
+
+      setCargandoProductos(true);
+      setListaProductos([]);
+      setProductosDelPedido([]);
+      setComentarios('');
+
+      try {
+        const token = localStorage.getItem('session_token') || '';
+        const productos = await getProducts(
+          token,
+          clienteSeleccionado.nit,
+          clienteSeleccionado.sucursal.toString()
+        );
+        setListaProductos(productos || []);
+        setNotificacion({
+          open: true,
+          message: 'Productos cargados correctamente.',
+          severity: 'success',
+        });
+      } catch (error) {
+        setNotificacion({
+          open: true,
+          message: 'Error al cargar productos.',
+          severity: 'error',
+        });
+      } finally {
+        setCargandoProductos(false);
+      }
+    };
+
+    void cargar();
+  }, [clienteSeleccionado]);
+
+  // -------- Agregar producto al pedido (evitar duplicados) --------
+  const handleAddProducto = (producto: Producto | null) => {
+    if (!producto) return;
+    const existe = productosDelPedido.some((p) => p.id === producto.id);
+    if (existe) {
+      setNotificacion({
+        open: true,
+        message: 'El producto ya fue agregado.',
+        severity: 'info',
+      });
+      return;
+    }
+
+    if ((producto as any).stock !== undefined && (producto as any).stock <= 0) {
+      setNotificacion({
+        open: true,
+        message: 'El producto no tiene stock disponible.',
         severity: 'error',
       });
       return;
     }
 
-    setProductosDelPedido([...productosDelPedido, { ...producto, cantidad: 1 }]);
+    setProductosDelPedido((prev) => [...prev, { ...(producto as any), cantidad: 1 }]);
   };
 
-  // 🔹 Actualizar cantidad con validación
+  // -------- Actualizar cantidad (solo enteros positivos) y validar stock --------
   const handleUpdateCantidad = (id: number, cantidad: number) => {
     const producto = productosDelPedido.find((p) => p.id === id);
     if (!producto) return;
-
-    let nuevaCantidad = Math.max(1, cantidad);
-    if (nuevaCantidad > producto.stock) {
-      nuevaCantidad = producto.stock;
-      setNotificacion({
-        open: true,
-        message: `⚠️ No puedes pedir más de ${producto.stock} unidades de ${producto.nombre}.`,
-        severity: 'error',
-      });
-    }
-
-    setProductosDelPedido(
-      productosDelPedido.map((p) =>
-        p.id === id ? { ...p, cantidad: nuevaCantidad } : p
-      )
-    );
+    const nueva = Math.max(1, Math.trunc(cantidad));
+    setProductosDelPedido((prev) => prev.map((p) => (p.id === id ? { ...p, cantidad: nueva } : p)));
   };
 
+  // -------- Remover producto --------
   const handleRemoveProducto = (id: number) => {
-    setProductosDelPedido(productosDelPedido.filter((p) => p.id !== id));
+    setProductosDelPedido((prev) => prev.filter((p) => p.id !== id));
   };
 
-  // 🔹 Totales
-  const subtotalPedido = productosDelPedido.reduce(
-    (total, p) => total + p.precio * p.cantidad,
-    0
-  );
-  const ivaTotal = productosDelPedido.reduce(
-    (total, p) => total + p.precio * p.cantidad * (p.porcentajeImpuesto / 100),
-    0
-  );
+  // -------- Validación de stocks antes de enviar: si alguna cantidad > stock -> bloquear envío --------
+  const validarStockAntesDeEnviar = (): boolean => {
+    for (const p of productosDelPedido) {
+      const stock = (p as any).stock;
+      if (stock !== undefined && p.cantidad > stock) {
+        setNotificacion({
+          open: true,
+          message: `Cantidad mayor al stock disponible para ${p.nombre}. Corrige la cantidad.`,
+          severity: 'info',
+        });
+        return false;
+      }
+    }
+    return true;
+  };
+
+  // -------- Totales --------
+  const subtotalPedido = productosDelPedido.reduce((t, p) => t + p.precio * p.cantidad, 0);
+  const ivaTotal = productosDelPedido.reduce((t, p) => t + p.precio * p.cantidad * (p.porcentajeImpuesto / 100), 0);
   const totalPedido = subtotalPedido + ivaTotal;
 
-  // 🔹 Confirmar envío
+  // -------- Envío del pedido --------
   const handleConfirmarEnvio = () => setAbrirDialogo(true);
   const handleCancelarEnvio = () => setAbrirDialogo(false);
 
   const handleEnviarPedido = async () => {
-    if (!clienteSeleccionado) return;
+    if (!clienteSeleccionado) {
+      setNotificacion({ open: true, message: 'Selecciona un cliente antes de enviar.', severity: 'info' });
+      return;
+    }
+
+    if (productosDelPedido.length === 0) {
+      setNotificacion({ open: true, message: 'Agrega al menos un producto al pedido.', severity: 'info' });
+      return;
+    }
+
+    // Validación de stock: bloqueo si hay cantidades > stock
+    if (!validarStockAntesDeEnviar()) {
+      setAbrirDialogo(false);
+      return;
+    }
 
     setEnviandoPedido(true);
     setAbrirDialogo(false);
 
     const pedido: CrearPedido = {
-      comentarios: comentarios || "",
+      comentarios: comentarios || '',
       nit: clienteSeleccionado.nit,
       idsuc: clienteSeleccionado.sucursal,
-      productos: productosDelPedido.map((pedido) => ({
-        idProducto: pedido.codigo,
-        cantidad: pedido.cantidad
-      } as ProductoPedido))
-
-    }
-
-    
+      productos: productosDelPedido.map((p) => ({ idProducto: (p as any).codigo, cantidad: p.cantidad } as ProductoPedido)),
+    };
 
     try {
-      const response = await guardarPedido(localStorage.getItem("session_token") || "", pedido)
-      if (response.pedido) {
-        setEnviandoPedido(false);
-        setClienteSeleccionado(null);
-        setProductosDelPedido([]);
-        setComentarios('');
+      const token = localStorage.getItem('session_token') || '';
+      const response = await guardarPedido(token, pedido);
+      if (response && response.pedido) {
+        // limpieza total al enviar con éxito
+        resetToInitial();
         setNotificacion({
-        open: true,
-        message: `✅ Pedido ${response.pedido.id} enviado correctamente.`,
-        severity: 'success',
-      });
+          open: true,
+          message: `Pedido ${response.pedido.id} enviado correctamente.`,
+          severity: 'success',
+        });
       } else {
-         setNotificacion({
-        open: true,
-        message: '❌ Pedido no pudo ser enviado.',
-        severity: 'error',        
-      });
-        setEnviandoPedido(false);
+        setNotificacion({ open: true, message: 'No se pudo enviar el pedido.', severity: 'error' });
       }
     } catch (error) {
-      
+      setNotificacion({ open: true, message: 'Error al enviar el pedido.', severity: 'error' });
+    } finally {
+      setEnviandoPedido(false);
     }
   };
 
+  // -------- Render --------
   return (
     <AppLayout>
       <Paper sx={{ p: 3, borderRadius: 2 }}>
         <Stack spacing={3}>
           <Typography variant="h4">Crear Nuevo Pedido</Typography>
 
-          {/* Cliente y Fecha */}
-          <Stack direction={{ xs: 'column', md: 'row' }} spacing={3}>
-            <Box sx={{ width: { xs: '100%', md: '66.67%' } }}>
-              <Autocomplete
-                options={listaClientes}
-                getOptionLabel={(option) => `${option.razonSocial} - NIT: ${option.nit}`}
-                onChange={(_, value) => setClienteSeleccionado(value)}
-                renderInput={(params) => <TextField {...params} label="Buscar Cliente" />}
-                isOptionEqualToValue={(option, value) => option.id === value.id}
-                value={clienteSeleccionado}
-              />
-            </Box>
-            <Box sx={{ width: { xs: '100%', md: '33.33%' } }}>
-              <TextField
-                label="Fecha del Pedido"
-                value={fechaPedido}
-                fullWidth
-                InputProps={{ readOnly: true }}
-              />
-            </Box>
+          {/* Mensaje guía cuando la página está en estado inicial */}
+          {(!clienteSeleccionado && productosDelPedido.length === 0 && listaClientes.length === 0) && (
+            <Typography variant="body2" color="textSecondary">
+              Seleccione un cliente para iniciar un pedido
+            </Typography>
+          )}
+
+          {/* Búsqueda de cliente (visible todo el tiempo) */}
+          <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems="center">
+            <TextField
+              label="Ingrese al menos 3 letras del nombre del cliente"
+              value={busquedaCliente}
+              onChange={(e) => setBusquedaCliente(e.target.value.toUpperCase())} // enviamos mayúsculas
+              fullWidth
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={handleBuscarClientes} color="primary" disabled={buscandoClientes}>
+                      {buscandoClientes ? <CircularProgress size={20} /> : <SearchIcon />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+            />
+            <TextField label="Fecha del Pedido" value={fechaPedido} fullWidth InputProps={{ readOnly: true }} sx={{ maxWidth: { md: '320px' } }} />
           </Stack>
+
+          {/* Lista de clientes debajo del campo (permanece visible hasta que el usuario la limpie por selección o nueva búsqueda) */}
+          {mostrarListaClientes && listaClientes.length > 0 && (
+            <Paper variant="outlined" sx={{ maxHeight: 260, overflow: 'auto' }}>
+              {listaClientes.map((c) => (
+                <Box
+                  key={`${c.id}`}
+                  sx={{ p: 1, borderBottom: '1px solid #eee', cursor: 'pointer' }}
+                  onClick={() => handleSeleccionarCliente(c)}
+                >
+                  <Typography variant="subtitle2">{c.razonSocial}</Typography>
+                  <Typography variant="body2" color="textSecondary">
+                    NIT: {c.nit} — Sucursal: {c.direccion}
+                  </Typography>
+                </Box>
+              ))}
+            </Paper>
+          )}
 
           {/* Info cliente */}
           {clienteSeleccionado && (
             <Card variant="outlined">
               <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  {clienteSeleccionado.razonSocial}
-                </Typography>
-                <Typography color="textSecondary" variant="body2">
-                  <strong>NIT:</strong> {clienteSeleccionado.nit}
-                </Typography>
-                <Typography color="textSecondary" variant="body2">
-                  <strong>Sucursal:</strong> {clienteSeleccionado.sucursal}
-                </Typography>
-                <Typography color="textSecondary" variant="body2">
-                  <strong>Dirección:</strong> {clienteSeleccionado.direccion}
-                </Typography>
-                <Typography color="textSecondary" variant="body2">
-                  <strong>Ubicación:</strong> {clienteSeleccionado.ciudad}, {clienteSeleccionado.departamento}
-                </Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <Box>
+                    <Typography variant="h6">{clienteSeleccionado.direccion}</Typography>
+                    <Typography variant="body2"><strong>Dirección:</strong> {clienteSeleccionado.direccion}</Typography>
+                    <Typography variant="body2"><strong>Ubicación:</strong> {clienteSeleccionado.ciudad}, {clienteSeleccionado.departamento}</Typography>
+                  </Box>
+                  <IconButton onClick={resetToInitial}><ClearIcon /></IconButton>
+                </Box>
               </CardContent>
             </Card>
           )}
 
           <Divider />
 
-          {/* Productos */}
+          {/* Autocomplete de productos -> inhabilitado hasta seleccionar cliente */}
           <Autocomplete
+            disabled={!productosHabilitados || cargandoProductos}
             options={listaProductos}
-            getOptionLabel={(option) => `${option.codigo} | Código: ${option.nombre} | Marca: ${option.marca} | Stock: ${option.stock}`}
+            getOptionLabel={(option) => `${option.codigo} | ${option.nombre} | Marca: ${option.marca} | Stock: ${option.stock}`}
             onChange={(_, value) => handleAddProducto(value)}
             renderInput={(params) => (
               <TextField
                 {...params}
                 label="Agregar Producto al Pedido"
+                helperText={!productosHabilitados ? 'Seleccione un cliente para habilitar la búsqueda de productos' : ''}
                 InputProps={{
                   ...params.InputProps,
                   endAdornment: (
@@ -280,10 +385,9 @@ const PedidosPage = () => {
                 }}
               />
             )}
-            disabled={!clienteSeleccionado || cargandoProductos}
           />
 
-          {/* Tabla */}
+          {/* Tabla de productos del pedido */}
           <TableContainer component={Paper} variant="outlined">
             <Table>
               <TableHead>
@@ -300,9 +404,7 @@ const PedidosPage = () => {
               <TableBody>
                 {productosDelPedido.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} align="center">
-                      Agrega productos para comenzar
-                    </TableCell>
+                    <TableCell colSpan={7} align="center">Agrega productos para comenzar</TableCell>
                   </TableRow>
                 ) : (
                   productosDelPedido.map((p) => {
@@ -310,81 +412,26 @@ const PedidosPage = () => {
                     const ivaProd = valorTotal * (p.porcentajeImpuesto / 100);
                     return (
                       <TableRow key={p.id}>
-                        <TableCell>{p.codigo} - {p.nombre}</TableCell>
-                        <TableCell align="right">
-                          {p.precio.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}
-                        </TableCell>
+                        <TableCell>{(p as any).codigo} - {p.nombre}</TableCell>
+                        <TableCell align="right">{p.precio.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}</TableCell>
                         <TableCell align="center">
                           <TextField
                             type="number"
                             value={p.cantidad}
-                            onChange={(e) =>
-                              handleUpdateCantidad(p.id, parseInt(e.target.value, 10))
-                            }
-                            inputProps={{ min: 1, max: p.stock, style: { textAlign: 'center' } }}
+                            onChange={(e) => handleUpdateCantidad(p.id, parseInt(e.target.value || '0', 10))}
+                            inputProps={{ min: 1, max: (p as any).stock ?? undefined, style: { textAlign: 'center' } }}
                             sx={{ width: '80px' }}
                           />
                         </TableCell>
-                        <TableCell align="right">
-                          {valorTotal.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}
-                        </TableCell>
-                        <TableCell align="right">
-                          {ivaProd.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}
-                        </TableCell>
-                        <TableCell align="right">
-                          {(valorTotal + ivaProd).toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}
-                        </TableCell>
+                        <TableCell align="right">{valorTotal.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}</TableCell>
+                        <TableCell align="right">{ivaProd.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}</TableCell>
+                        <TableCell align="right">{(valorTotal + ivaProd).toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}</TableCell>
                         <TableCell align="center">
-                          <IconButton color="error" onClick={() => handleRemoveProducto(p.id)}>
-                            <DeleteIcon />
-                          </IconButton>
+                          <IconButton color="error" onClick={() => handleRemoveProducto(p.id)}><DeleteIcon /></IconButton>
                         </TableCell>
                       </TableRow>
                     );
                   })
-                )}
-
-                {/* Totales */}
-                {productosDelPedido.length > 0 && (
-                  <>
-                    <TableRow sx={{ '& > td': { border: 0 } }}>
-                      <TableCell colSpan={5} />
-                      <TableCell align="right">
-                        <Typography variant="body2" sx={{ fontWeight: 'bold' }}>SUBTOTAL:</Typography>
-                      </TableCell>
-                      <TableCell align="right">
-                        <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                          {subtotalPedido.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}
-                        </Typography>
-                      </TableCell>
-                    </TableRow>
-
-                    <TableRow sx={{ '& > td': { border: 0 } }}>
-                      <TableCell colSpan={5} />
-                      <TableCell align="right">
-                        <Typography variant="body2" sx={{ fontWeight: 'bold' }}>TOTAL IVA:</Typography>
-                      </TableCell>
-                      <TableCell align="right">
-                        <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                          {ivaTotal.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}
-                        </Typography>
-                      </TableCell>
-                    </TableRow>
-
-                    <TableRow sx={{ '& > td': { border: 0 } }}>
-                      <TableCell colSpan={5} />
-                      <TableCell align="right">
-                        <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                          TOTAL:
-                        </Typography>
-                      </TableCell>
-                      <TableCell align="right">
-                        <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                          {totalPedido.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}
-                        </Typography>
-                      </TableCell>
-                    </TableRow>
-                  </>
                 )}
               </TableBody>
             </Table>
@@ -403,7 +450,7 @@ const PedidosPage = () => {
             />
           )}
 
-          {/* Botón */}
+          {/* Botón enviar */}
           <Stack direction="row" justifyContent="flex-end">
             <Button
               variant="contained"
@@ -418,24 +465,17 @@ const PedidosPage = () => {
         </Stack>
       </Paper>
 
-      {/* Diálogo de confirmación */}
+      {/* Diálogo confirmación */}
       <Dialog open={abrirDialogo} onClose={handleCancelarEnvio}>
         <DialogTitle>Confirmar Envío</DialogTitle>
         <DialogContent>
-          <Typography>
-            <strong>Cliente:</strong> {clienteSeleccionado?.razonSocial}
-          </Typography>
-          <Typography>
-            <strong>Total:</strong>{' '}
-            {totalPedido.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}
-          </Typography>
+          <Typography><strong>Cliente:</strong> {clienteSeleccionado?.razonSocial}</Typography>
+          <Typography><strong>Total:</strong> {totalPedido.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}</Typography>
           {comentarios && <Typography><strong>Comentarios:</strong> {comentarios}</Typography>}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCancelarEnvio} color="inherit">Cancelar</Button>
-          <Button onClick={handleEnviarPedido} color="primary" variant="contained">
-            Confirmar Envío
-          </Button>
+          <Button onClick={handleEnviarPedido} color="primary" variant="contained">Confirmar Envío</Button>
         </DialogActions>
       </Dialog>
 
