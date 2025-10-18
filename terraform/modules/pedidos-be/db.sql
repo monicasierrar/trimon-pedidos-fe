@@ -30,7 +30,7 @@ CREATE TABLE pedidosDB.detalle_pedido (
 	id_unidad varchar(100) NOT NULL,
 	unidad INTEGER NOT NULL,
 	CONSTRAINT detalle_pedido_pk PRIMARY KEY (id),
-	CONSTRAINT detalle_pedido_pedido_FK FOREIGN KEY (id) REFERENCES pedidosDB.pedido(id) ON DELETE RESTRICT ON UPDATE CASCADE
+	CONSTRAINT detalle_pedido_pedido_FK FOREIGN KEY (pedido_id) REFERENCES pedidosDB.pedido(id) ON DELETE RESTRICT ON UPDATE CASCADE
 )
 ENGINE=InnoDB
 DEFAULT CHARSET=utf8mb4
