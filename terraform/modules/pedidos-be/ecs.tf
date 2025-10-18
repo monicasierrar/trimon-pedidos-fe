@@ -12,7 +12,7 @@ resource "aws_ecs_cluster" "pedidos_cluster" {
 }
 
 resource "aws_ecs_task_definition" "pedidos_task" {
-  family                   = "pedidos-task"
+  family                   = "pedidos-api-task"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   cpu                      = "512"
