@@ -1,3 +1,4 @@
+// PedidosPage con búsqueda por cliente y productos
 import React, { useEffect, useState } from 'react';
 import { AppLayout } from '../components/AppLayout';
 import {
@@ -44,7 +45,8 @@ const PedidosPage: React.FC = () => {
   const [fechaPedido, setFechaPedido] = useState('');
   const [busquedaCliente, setBusquedaCliente] = useState('');
   const [buscandoClientes, setBuscandoClientes] = useState(false);
-  const [cargandoProductos, setCargandoProductos] = useState(false);
+  const [busquedaProducto, setBusquedaProducto] = useState('');
+  const [buscandoProductos, setBuscandoProductos] = useState(false);
   const [mostrarListaClientes, setMostrarListaClientes] = useState(false);
 
   // Notificaciones
@@ -80,6 +82,7 @@ const PedidosPage: React.FC = () => {
     setProductosDelPedido([]);
     setComentarios('');
     setBusquedaCliente('');
+    setBusquedaProducto('');
     setMostrarListaClientes(false);
     setNotificacion({ open: false, message: '', severity: 'success' });
   };
@@ -97,7 +100,7 @@ const PedidosPage: React.FC = () => {
       return;
     }
 
-    // Limpieza completa antes de la búsqueda (según requeriste)
+    // Limpieza completa antes de la búsqueda
     setClienteSeleccionado(null);
     setListaProductos([]);
     setProductosDelPedido([]);
@@ -115,14 +118,14 @@ const PedidosPage: React.FC = () => {
       if (!clientes || clientes.length === 0) {
         setNotificacion({
           open: true,
-          message: 'No se encontraron clientes.',
+          message: 'No se encontraron clientes con el criterio de búsqueda.',
           severity: 'info',
         });
       }
     } catch (error) {
       setNotificacion({
         open: true,
-        message: 'Error al buscar clientes.',
+        message: 'No existen clientes con el criterio de búsqueda.',
         severity: 'error',
       });
     } finally {
@@ -130,59 +133,59 @@ const PedidosPage: React.FC = () => {
     }
   };
 
-  // -------- Al seleccionar cliente: cargar productos y limpiar lista de clientes --------
+  // -------- Al seleccionar cliente --------
   const handleSeleccionarCliente = (cliente: Cliente) => {
     setClienteSeleccionado(cliente);
-    // limpiar la lista de clientes mostrada después de seleccionar (según solicitaste)
     setListaClientes([]);
     setMostrarListaClientes(false);
-    // dejar campo de búsqueda con el nombre si deseas (opcional)
     setBusquedaCliente(`${cliente.razonSocial} - ${cliente.nit}`);
-    // La carga real de productos se hace en el useEffect que sigue
+    setListaProductos([]);
+    setProductosDelPedido([]);
+    setBusquedaProducto('');
+    setComentarios('');
   };
 
-  // -------- useEffect: cargar productos cuando cambia el cliente seleccionado --------
-  useEffect(() => {
-    const cargar = async () => {
-      if (!clienteSeleccionado) {
-        setListaProductos([]);
-        setProductosDelPedido([]);
-        return;
-      }
+  // -------- Buscar productos (al presionar lupa) --------
+  const handleBuscarProductos = async () => {
+    if (!clienteSeleccionado) return;
 
-      setCargandoProductos(true);
-      setListaProductos([]);
-      setProductosDelPedido([]);
-      setComentarios('');
+    const termino = busquedaProducto.trim().toUpperCase();
+    if (termino.length < 3) {
+      setNotificacion({
+        open: true,
+        message: 'Ingrese al menos 3 letras para buscar productos.',
+        severity: 'info',
+      });
+      return;
+    }
 
-      try {
-        const token = localStorage.getItem('session_token') || '';
-        const productos = await getProducts(
-          token,
-          clienteSeleccionado.nit,
-          clienteSeleccionado.sucursal.toString()
-        );
-        setListaProductos(productos || []);
+    setBuscandoProductos(true);
+    setListaProductos([]);
+    setProductosDelPedido([]);
+
+    try {
+      const token = localStorage.getItem('session_token') || '';
+      const productos = await getProducts(token, clienteSeleccionado.nit, clienteSeleccionado.sucursal.toString(), termino);
+      setListaProductos(productos || []);
+      if (!productos || productos.length === 0) {
         setNotificacion({
           open: true,
-          message: 'Productos cargados correctamente.',
-          severity: 'success',
+          message: 'No se encontraron productos con el criterio de búsqueda.',
+          severity: 'info',
         });
-      } catch (error) {
-        setNotificacion({
-          open: true,
-          message: 'Error al cargar productos.',
-          severity: 'error',
-        });
-      } finally {
-        setCargandoProductos(false);
       }
-    };
+    } catch (error) {
+      setNotificacion({
+        open: true,
+        message: 'No existen productos con el criterio de búsqueda.',
+        severity: 'error',
+      });
+    } finally {
+      setBuscandoProductos(false);
+    }
+  };
 
-    void cargar();
-  }, [clienteSeleccionado]);
-
-  // -------- Agregar producto al pedido (evitar duplicados) --------
+  // -------- Agregar producto al pedido --------
   const handleAddProducto = (producto: Producto | null) => {
     if (!producto) return;
     const existe = productosDelPedido.some((p) => p.id === producto.id);
@@ -207,7 +210,7 @@ const PedidosPage: React.FC = () => {
     setProductosDelPedido((prev) => [...prev, { ...(producto as any), cantidad: 1 }]);
   };
 
-  // -------- Actualizar cantidad (solo enteros positivos) y validar stock --------
+  // -------- Actualizar cantidad --------
   const handleUpdateCantidad = (id: number, cantidad: number) => {
     const producto = productosDelPedido.find((p) => p.id === id);
     if (!producto) return;
@@ -220,7 +223,7 @@ const PedidosPage: React.FC = () => {
     setProductosDelPedido((prev) => prev.filter((p) => p.id !== id));
   };
 
-  // -------- Validación de stocks antes de enviar: si alguna cantidad > stock -> bloquear envío --------
+  // -------- Validación de stock antes de enviar --------
   const validarStockAntesDeEnviar = (): boolean => {
     for (const p of productosDelPedido) {
       const stock = (p as any).stock;
@@ -256,7 +259,6 @@ const PedidosPage: React.FC = () => {
       return;
     }
 
-    // Validación de stock: bloqueo si hay cantidades > stock
     if (!validarStockAntesDeEnviar()) {
       setAbrirDialogo(false);
       return;
@@ -276,7 +278,6 @@ const PedidosPage: React.FC = () => {
       const token = localStorage.getItem('session_token') || '';
       const response = await guardarPedido(token, pedido);
       if (response && response.pedido) {
-        // limpieza total al enviar con éxito
         resetToInitial();
         setNotificacion({
           open: true,
@@ -300,19 +301,19 @@ const PedidosPage: React.FC = () => {
         <Stack spacing={3}>
           <Typography variant="h4">Crear Nuevo Pedido</Typography>
 
-          {/* Mensaje guía cuando la página está en estado inicial */}
+          {/* Mensaje guía */}
           {(!clienteSeleccionado && productosDelPedido.length === 0 && listaClientes.length === 0) && (
             <Typography variant="body2" color="textSecondary">
               Seleccione un cliente para iniciar un pedido
             </Typography>
           )}
 
-          {/* Búsqueda de cliente (visible todo el tiempo) */}
+          {/* Búsqueda de cliente */}
           <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems="center">
             <TextField
               label="Ingrese al menos 3 letras del nombre del cliente"
               value={busquedaCliente}
-              onChange={(e) => setBusquedaCliente(e.target.value.toUpperCase())} // enviamos mayúsculas
+              onChange={(e) => setBusquedaCliente(e.target.value.toUpperCase())}
               fullWidth
               InputProps={{
                 endAdornment: (
@@ -327,15 +328,11 @@ const PedidosPage: React.FC = () => {
             <TextField label="Fecha del Pedido" value={fechaPedido} fullWidth InputProps={{ readOnly: true }} sx={{ maxWidth: { md: '320px' } }} />
           </Stack>
 
-          {/* Lista de clientes debajo del campo (permanece visible hasta que el usuario la limpie por selección o nueva búsqueda) */}
+          {/* Lista de clientes */}
           {mostrarListaClientes && listaClientes.length > 0 && (
             <Paper variant="outlined" sx={{ maxHeight: 260, overflow: 'auto' }}>
               {listaClientes.map((c) => (
-                <Box
-                  key={`${c.id}`}
-                  sx={{ p: 1, borderBottom: '1px solid #eee', cursor: 'pointer' }}
-                  onClick={() => handleSeleccionarCliente(c)}
-                >
+                <Box key={`${c.id}`} sx={{ p: 1, borderBottom: '1px solid #eee', cursor: 'pointer' }} onClick={() => handleSeleccionarCliente(c)}>
                   <Typography variant="subtitle2">{c.razonSocial}</Typography>
                   <Typography variant="body2" color="textSecondary">
                     NIT: {c.nit} — Sucursal: {c.direccion}
@@ -363,9 +360,28 @@ const PedidosPage: React.FC = () => {
 
           <Divider />
 
-          {/* Autocomplete de productos -> inhabilitado hasta seleccionar cliente */}
+          {/* Búsqueda de productos */}
+          {clienteSeleccionado && (
+            <TextField
+              label="Ingrese al menos 3 letras del producto"
+              value={busquedaProducto}
+              onChange={(e) => setBusquedaProducto(e.target.value.toUpperCase())}
+              fullWidth
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={handleBuscarProductos} color="primary" disabled={buscandoProductos}>
+                      {buscandoProductos ? <CircularProgress size={20} /> : <SearchIcon />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+            />
+          )}
+
+          {/* Autocomplete de productos */}
           <Autocomplete
-            disabled={!productosHabilitados || cargandoProductos}
+            disabled={!productosHabilitados || buscandoProductos}
             options={listaProductos}
             getOptionLabel={(option) => `${option.codigo} | ${option.nombre} | Marca: ${option.marca} | Stock: ${option.stock}`}
             onChange={(_, value) => handleAddProducto(value)}
@@ -378,7 +394,7 @@ const PedidosPage: React.FC = () => {
                   ...params.InputProps,
                   endAdornment: (
                     <>
-                      {cargandoProductos ? <CircularProgress color="inherit" size={20} /> : null}
+                      {(buscandoProductos || buscandoProductos) ? <CircularProgress color="inherit" size={20} /> : null}
                       {params.InputProps.endAdornment}
                     </>
                   ),
@@ -387,7 +403,7 @@ const PedidosPage: React.FC = () => {
             )}
           />
 
-          {/* Tabla de productos del pedido */}
+          {/* Tabla de productos */}
           <TableContainer component={Paper} variant="outlined">
             <Table>
               <TableHead>

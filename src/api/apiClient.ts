@@ -14,7 +14,7 @@ export const getClients = async (token: string, filtro?: string): Promise<Client
         : CLIENTS_ENDPOINT;
 
     return getData(endpoint, token)
-        .then(result => result.clientes)
+       .then(result => result.clientes)
         .catch(err => {
             console.log("❌ Error al obtener clientes:", err);
             return [];
@@ -22,10 +22,23 @@ export const getClients = async (token: string, filtro?: string): Promise<Client
 };
 
 
-export const getProducts = async (token: string, clientenit: string, sucursalId: string): Promise<Producto[]> => {
-    return getData(`${PRODUCTS_ENDPOINT}?clientenit=${clientenit}&sucursalId=${sucursalId}`, token).then(result => result.productos)
-        .catch(err => console.log("error fetching products ", err))
-}
+
+export const getProducts = async (
+  token: string,
+  clientenit: string,
+  sucursalId: string,
+  filtro?: string
+): Promise<Producto[]> => {
+  
+    const filtroParam = filtro ? `&filtro=${filtro.toUpperCase()}` : '';
+        return getData(
+        `${PRODUCTS_ENDPOINT}?clientenit=${clientenit}&sucursalId=${sucursalId}${filtroParam}`,
+        token
+    )
+   .then(result => result.productos)
+   .catch(err => console.log('error fetching products ', err));
+};
+
 
 export const getUserInfo = async (token: string): Promise<any> => {
     return getData("/user-info", token )
