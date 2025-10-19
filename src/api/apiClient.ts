@@ -1,10 +1,10 @@
 import axios, { AxiosResponse } from "axios";
-import { Cliente, CrearPedido, Producto } from "./types";
+import { Cliente, CrearPedido, HistorialPedidos, Producto } from "./types";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 const CLIENTS_ENDPOINT = "/clientes"
 const PRODUCTS_ENDPOINT = "/productos"
-// const ORDERS_ENDPOINT = "/pedidos"
+const ORDERS_ENDPOINT = "/HistorialPedidos"
 
 
 export const getClients = async (token: string, filtro?: string): Promise<Cliente[]> => {
@@ -78,4 +78,31 @@ const postData = async (token: string, endpoint: string, data: Record<string, an
         console.error('Error during POST request:', error);
         throw error; // Re-throw the error for further handling
     }
+};
+
+export const getHistorialPedidos = async (
+  token: string,
+  fechaInicio?: string,
+  fechaFin?: string
+): Promise<HistorialPedidos[]> => {
+  try {
+    const response = await axios.post(
+      `${API_BASE_URL}${ORDERS_ENDPOINT}`,
+      { fechaInicio, fechaFin },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    // Depuración: ver qué devuelve la API
+    console.log('Respuesta API:', response.data);
+
+    return response.data.HistorialPedidos as HistorialPedidos[];
+  } catch (error: any) {
+    console.error('Error fetching historial pedidos', error);
+    return [];
+  }
 };
