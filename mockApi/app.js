@@ -139,6 +139,21 @@ app.post('/pedidos', (req, res) => {
 }
 )
 
+app.post('/HistorialPedidos', (req,res) => {
+    const HistorialPedidos = [
+        { id: 'PED-001', fecha: '2025-10-10', cliente: 'Cliente Alpha S.A.S.', total: 430000, estado: 'Abierto' },
+        { id: 'PED-002', fecha: '2025-10-15', cliente: 'Comercializadora Beta Ltda.', total: 255000, estado: 'Cerrado' },
+        { id: 'PED-003', fecha: '2025-10-14', cliente: 'Industrias Gamma', total: 770000, estado: 'Facturado' },
+        { id: 'PED-004', fecha: '2025-10-10', cliente: 'Cliente Alpha S.A.S.', total: 180000, estado: 'Parcial' },
+        { id: 'PED-005', fecha: '2025-10-15', cliente: 'Comercializadora Beta Ltda.', total: 35000, estado: 'Pendiente' },
+        ];
+        return res.json({
+        HistorialPedidos
+        })
+    }
+)
+
+ 
 // Start the server
 app.listen(port, () => {
     console.log(`Express API listening at http://localhost:${port}`);

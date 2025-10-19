@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AppLayout } from '../components/AppLayout';
 import {
   Paper,
@@ -11,39 +11,98 @@ import {
   TableRow,
   Stack,
   Chip,
-  Button,
+  IconButton,
+  Box,
+  Grow,
 } from '@mui/material';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { Dayjs } from 'dayjs';
-import { pedidosMock } from '../data/mocks';
-import { Pedido } from '../api/types';
+import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import dayjs, { Dayjs } from 'dayjs';
+import 'dayjs/locale/es';
+import SearchIcon from '@mui/icons-material/Search';
+import { getHistorialPedidos } from '../api/apiClient';
+import type { HistorialPedidos } from '../api/types';
 
-const HistorialPage = () => {
-  // 1. Estados para manejar las fechas seleccionadas
+interface HistorialPageProps {
+  token: string;
+}
+
+const HistorialPage = ({ token }: HistorialPageProps) => {
   const [fechaInicio, setFechaInicio] = useState<Dayjs | null>(null);
   const [fechaFin, setFechaFin] = useState<Dayjs | null>(null);
-  
-  // 2. Estado para almacenar el resultado del filtro
-  const [pedidosFiltrados, setPedidosFiltrados] = useState<Pedido[]>(pedidosMock);
+  const [pedidosFiltrados, setPedidosFiltrados] = useState<HistorialPedidos[]>([]);
+  const [animarChips, setAnimarChips] = useState(false);
 
-  // 3. Lógica del filtro que se activa con el botón
-  const handleBuscar = () => {
-    const pedidosResultado = pedidosMock.filter(pedido => {
-      if (!fechaInicio || !fechaFin) return true;
-      
-      const fechaPedido = new Date(pedido.fecha);
-      return fechaPedido >= fechaInicio.startOf('day').toDate() && fechaPedido <= fechaFin.endOf('day').toDate();
-    });
-    setPedidosFiltrados(pedidosResultado);
+  // Validación de fechas
+  const fechasValidas =
+    !!fechaInicio &&
+    !!fechaFin &&
+    (fechaFin.isSame(fechaInicio, 'day') || fechaFin.isAfter(fechaInicio, 'day'));
+
+  // Limpia la tabla automáticamente si las fechas no son válidas
+  useEffect(() => {
+    if (fechaInicio && fechaFin && fechaFin.isBefore(fechaInicio, 'day')) {
+      setPedidosFiltrados([]);
+    }
+  }, [fechaInicio, fechaFin]);
+
+  const getStatusChip = (estado: HistorialPedidos['estado'], index: number) => {
+    const colorMap: Record<HistorialPedidos['estado'], 'success' | 'info' | 'error' | 'warning'> = {
+      Abierto: 'success',
+      Cerrado: 'info',
+      Facturado: 'error',
+      Parcial: 'warning',
+      Pendiente: 'warning',
+    };
+
+    return (
+      <Grow in={animarChips} timeout={500 + index * 100} key={index}>
+        <Chip
+          label={estado}
+          size="small"
+          variant="filled"
+          color={colorMap[estado]}
+          sx={
+            estado === 'Pendiente'
+              ? { backgroundColor: '#FFD700', color: 'black', fontWeight: 500 }
+              : estado === 'Facturado'
+              ? { backgroundColor: '#9C27B0', color: 'white', fontWeight: 500 }
+              : {}
+          }
+        />
+      </Grow>
+    );
   };
 
-  const getStatusChip = (estado: 'Entregado' | 'Enviado' | 'Cancelado') => {
-    const color = {
-      Entregado: 'success',
-      Enviado: 'info',
-      Cancelado: 'error',
-    }[estado];
-    return <Chip label={estado} color={color as 'success' | 'info' | 'error'} size="small" />;
+  const handleBuscar = async () => {
+    if (!fechasValidas) {
+      setPedidosFiltrados([]);
+      return;
+    }
+
+    const inicioStr = fechaInicio!.format('YYYY-MM-DD');
+    const finStr = fechaFin!.format('YYYY-MM-DD');
+
+    try {
+      const pedidosResultado = await getHistorialPedidos(token, inicioStr, finStr);
+
+      // Filtrado por día usando dayjs
+      const filtrados = pedidosResultado.filter((pedido) => {
+        const fechaPedido = dayjs(pedido.fecha);
+        return (
+          fechaPedido.isSame(fechaInicio!, 'day') ||
+          fechaPedido.isSame(fechaFin!, 'day') ||
+          (fechaPedido.isAfter(fechaInicio!, 'day') && fechaPedido.isBefore(fechaFin!, 'day'))
+        );
+      });
+
+      setPedidosFiltrados(filtrados);
+
+      setAnimarChips(false);
+      setTimeout(() => setAnimarChips(true), 50);
+    } catch (error) {
+      setPedidosFiltrados([]);
+    }
   };
 
   return (
@@ -51,29 +110,33 @@ const HistorialPage = () => {
       <Paper sx={{ p: 3, borderRadius: 2 }}>
         <Stack spacing={3}>
           <Typography variant="h4">Historial de Pedidos</Typography>
-          
-          {/* 4. Componentes de fecha y botón "Buscar" */}
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="center">
-            <DatePicker
-              label="Fecha de Inicio"
-              value={fechaInicio}
-              onChange={(newValue) => setFechaInicio(newValue)}
-            />
-            <DatePicker
-              label="Fecha de Fin"
-              value={fechaFin}
-              onChange={(newValue) => setFechaFin(newValue)}
-            />
-            <Button 
-              variant="contained" 
-              onClick={handleBuscar}
-              disabled={!fechaInicio || !fechaFin}
-            >
-              Buscar
-            </Button>
-          </Stack>
 
-          {/* Tabla que muestra los resultados de 'pedidosFiltrados' */}
+          <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="center">
+              <DatePicker
+                label="Fecha de Inicio"
+                value={fechaInicio}
+                onChange={(newValue) => setFechaInicio(newValue)}
+                format="DD/MM/YYYY"
+              />
+              <DatePicker
+                label="Fecha de Fin"
+                value={fechaFin}
+                onChange={(newValue) => setFechaFin(newValue)}
+                format="DD/MM/YYYY"
+              />
+              <IconButton color="primary" onClick={handleBuscar} disabled={!fechasValidas}>
+                <SearchIcon />
+              </IconButton>
+            </Stack>
+          </LocalizationProvider>
+
+          {fechaInicio && fechaFin && fechaFin.isBefore(fechaInicio, 'day') && (
+            <Typography variant="body2" color="error">
+              La fecha de fin debe ser igual o mayor a la fecha de inicio
+            </Typography>
+          )}
+
           <TableContainer component={Paper} variant="outlined">
             <Table>
               <TableHead>
@@ -86,15 +149,32 @@ const HistorialPage = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {pedidosFiltrados.map((pedido) => (
-                  <TableRow key={pedido.id}>
-                    <TableCell align="center">{new Date(pedido.fecha).toLocaleDateString('es-CO')}</TableCell>
-                    <TableCell align="center">{pedido.id}</TableCell>
-                    <TableCell>{pedido.cliente}</TableCell>
-                    <TableCell align="right">{pedido.total.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}</TableCell>
-                    <TableCell align="center">{getStatusChip(pedido.estado)}</TableCell>
+                {pedidosFiltrados.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} align="center">
+                      <Grow in={true} timeout={500}>
+                        <Box sx={{ py: 2, color: '#FFD700', fontWeight: 500 }}>
+                          No hay pedidos para las fechas seleccionadas
+                        </Box>
+                      </Grow>
+                    </TableCell>
                   </TableRow>
-                ))}
+                ) : (
+                  pedidosFiltrados.map((pedido, index) => (
+                    <TableRow key={pedido.id}>
+                      <TableCell align="center">{dayjs(pedido.fecha).format('DD/MM/YYYY')}</TableCell>
+                      <TableCell align="center">{pedido.id}</TableCell>
+                      <TableCell>{pedido.cliente}</TableCell>
+                      <TableCell align="right">
+                        {pedido.total.toLocaleString('es-CO', {
+                          style: 'currency',
+                          currency: 'COP',
+                        })}
+                      </TableCell>
+                      <TableCell align="center">{getStatusChip(pedido.estado, index)}</TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </TableContainer>

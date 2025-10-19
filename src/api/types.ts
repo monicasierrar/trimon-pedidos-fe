@@ -29,12 +29,12 @@ export interface PedidoProducto extends Producto {
   
 }
 
-export interface Pedido {
+export interface HistorialPedidos {
   id: string;
   fecha: string; // Usaremos formato ISO "YYYY-MM-DD" para facilitar el filtrado
   cliente: string;
   total: number;
-  estado: 'Entregado' | 'Enviado' | 'Cancelado';
+  estado: 'Abierto' | 'Cerrado' | 'Facturado' | 'Parcial' | 'Pendiente';
 }
 
 export interface Transaccion {
