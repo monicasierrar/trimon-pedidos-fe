@@ -79,7 +79,7 @@ app.get('/productos', (req, res) => {
             stock: 45, 
             precio: 180000,
             unidad: 'Und',
-            porcentaje: '19',
+            porcentajeImpuesto: '19',
             codimp: 'IVA01'
         },
         {
@@ -93,8 +93,8 @@ app.get('/productos', (req, res) => {
             stock: 120, 
             precio: 35000,
             unidad: 'Und',
-            porcentaje: '10',
-            codimp: 'IVA01'
+            porcentajeImpuesto: '10',
+            codigoImpuesto: 'IVA01'
         },
         {
             id: 203, 
@@ -107,8 +107,8 @@ app.get('/productos', (req, res) => {
             stock: 250, 
             precio: 45000,
             unidad: 'Und',
-            porcentaje: '19',
-            codimp: 'IVA01'
+            porcentajeImpuesto: '19',
+            codigoImpuesto: 'IVA01'
         },
         {
             id: 204, 
@@ -121,8 +121,8 @@ app.get('/productos', (req, res) => {
             stock: 30, 
             precio: 220000,
             unidad: 'Und',
-            porcentaje: '19',
-            codimp: 'IVA01'
+            porcentajeImpuesto: '19',
+            codigoImpuesto: 'IVA01'
         },
     ]
     return res.json({
@@ -130,6 +130,14 @@ app.get('/productos', (req, res) => {
     })
 })
 
+app.post('/pedidos', (req, res) => {
+    return res.json({
+        pedido: {
+            id: 5999999
+        }
+    })
+}
+)
 
 // Start the server
 app.listen(port, () => {
