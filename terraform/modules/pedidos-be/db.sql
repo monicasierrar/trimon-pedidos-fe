@@ -42,7 +42,7 @@ CREATE TABLE pedidosDB.error_pedido (
 	id_pedido INTEGER NOT NULL,
 	error TEXT NOT NULL,
 	CONSTRAINT error_pedido_pk PRIMARY KEY (id),
-	CONSTRAINT error_pedido_pedido_FK FOREIGN KEY (id) REFERENCES pedidosDB.pedido(id) ON DELETE RESTRICT ON UPDATE CASCADE
+	CONSTRAINT error_pedido_pedido_FK FOREIGN KEY (id_pedido) REFERENCES pedidosDB.pedido(id) ON DELETE RESTRICT ON UPDATE CASCADE
 )
 ENGINE=InnoDB
 DEFAULT CHARSET=utf8mb4
