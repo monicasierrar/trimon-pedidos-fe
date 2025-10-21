@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { AppLayout } from '../components/AppLayout';
+import { useState } from "react";
+import { AppLayout } from "../components/AppLayout";
 import {
   Paper,
   Typography,
@@ -12,33 +12,42 @@ import {
   Stack,
   Chip,
   Button,
-} from '@mui/material';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { Dayjs } from 'dayjs';
-import { transaccionesMock } from '../data/mocks';
-import { Transaccion } from '../api/types';
+} from "@mui/material";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { Dayjs } from "dayjs";
+import { Transaccion } from "../api/types";
+import { getTransacciones } from "../api/apiClient";
 
 const LogTransaccionesPage = () => {
   const [fechaInicio, setFechaInicio] = useState<Dayjs | null>(null);
   const [fechaFin, setFechaFin] = useState<Dayjs | null>(null);
-  const [transaccionesFiltradas, setTransaccionesFiltradas] = useState<Transaccion[]>(transaccionesMock);
+  const [transaccionesFiltradas, setTransaccionesFiltradas] = useState<
+    Transaccion[]
+  >([]);
 
   const handleBuscar = () => {
-    const resultado = transaccionesMock.filter(transaccion => {
-      if (!fechaInicio || !fechaFin) return true;
-      const fechaTransaccion = new Date(transaccion.fecha);
-      return fechaTransaccion >= fechaInicio.startOf('day').toDate() && fechaTransaccion <= fechaFin.endOf('day').toDate();
-    });
-    setTransaccionesFiltradas(resultado);
+    if (fechaInicio && fechaFin) {
+      getTransacciones(
+        localStorage.getItem("session_token") || "",
+        `${fechaInicio.format("YYYY-MM-DD")}`,
+        `${fechaFin.format("YYYY-MM-DD")}`,
+      ).then((pedidos) => setTransaccionesFiltradas(pedidos));
+    }
   };
 
-  const getStatusChip = (estado: 'Procesado' | 'Error' | 'Pendiente') => {
+  const getStatusChip = (estado: "Procesado" | "Error" | "Pendiente") => {
     const color = {
-      Procesado: 'success',
-      Error: 'error',
-      Pendiente: 'warning',
+      Procesado: "success",
+      Error: "error",
+      Pendiente: "warning",
     }[estado];
-    return <Chip label={estado} color={color as 'success' | 'error' | 'warning'} size="small" />;
+    return (
+      <Chip
+        label={estado}
+        color={color as "success" | "error" | "warning"}
+        size="small"
+      />
+    );
   };
 
   return (
@@ -46,8 +55,12 @@ const LogTransaccionesPage = () => {
       <Paper sx={{ p: 3, borderRadius: 2 }}>
         <Stack spacing={3}>
           <Typography variant="h4">Log de Transacciones</Typography>
-          
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="center">
+
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={2}
+            alignItems="center"
+          >
             <DatePicker
               label="Fecha de Inicio"
               value={fechaInicio}
@@ -58,8 +71,8 @@ const LogTransaccionesPage = () => {
               value={fechaFin}
               onChange={(newValue) => setFechaFin(newValue)}
             />
-            <Button 
-              variant="contained" 
+            <Button
+              variant="contained"
               onClick={handleBuscar}
               disabled={!fechaInicio || !fechaFin}
             >
@@ -79,9 +92,13 @@ const LogTransaccionesPage = () => {
               <TableBody>
                 {transaccionesFiltradas.map((transaccion) => (
                   <TableRow key={transaccion.id}>
-                    <TableCell>{new Date(transaccion.fecha).toLocaleDateString('es-CO')}</TableCell>
+                    <TableCell>
+                      {new Date(transaccion.fecha).toLocaleDateString("es-CO")}
+                    </TableCell>
                     <TableCell>{transaccion.id}</TableCell>
-                    <TableCell align="center">{getStatusChip(transaccion.estado)}</TableCell>
+                    <TableCell align="center">
+                      {getStatusChip(transaccion.estado)}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

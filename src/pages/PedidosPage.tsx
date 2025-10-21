@@ -1,6 +1,6 @@
 // PedidosPage con búsqueda por cliente y productos
-import React, { useEffect, useState } from 'react';
-import { AppLayout } from '../components/AppLayout';
+import React, { useEffect, useState } from "react";
+import { AppLayout } from "../components/AppLayout";
 import {
   Autocomplete,
   TextField,
@@ -27,33 +27,42 @@ import {
   DialogContent,
   DialogActions,
   InputAdornment,
-} from '@mui/material';
-import SearchIcon from '@mui/icons-material/Search';
-import DeleteIcon from '@mui/icons-material/Delete';
-import SendIcon from '@mui/icons-material/Send';
-import ClearIcon from '@mui/icons-material/Clear';
-import { Cliente, CrearPedido, PedidoProducto, Producto, ProductoPedido } from '../api/types';
-import { getClients, getProducts, guardarPedido } from '../api/apiClient';
+} from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
+import DeleteIcon from "@mui/icons-material/Delete";
+import SendIcon from "@mui/icons-material/Send";
+import ClearIcon from "@mui/icons-material/Clear";
+import {
+  Cliente,
+  CrearPedido,
+  PedidoProducto,
+  Producto,
+  ProductoPedido,
+} from "../api/types";
+import { getClients, getProducts, guardarPedido } from "../api/apiClient";
 
 const PedidosPage: React.FC = () => {
   // Estados principales
-  const [clienteSeleccionado, setClienteSeleccionado] = useState<Cliente | null>(null);
+  const [clienteSeleccionado, setClienteSeleccionado] =
+    useState<Cliente | null>(null);
   const [listaClientes, setListaClientes] = useState<Cliente[]>([]);
   const [listaProductos, setListaProductos] = useState<Producto[]>([]);
-  const [productosDelPedido, setProductosDelPedido] = useState<PedidoProducto[]>([]);
-  const [comentarios, setComentarios] = useState('');
-  const [fechaPedido, setFechaPedido] = useState('');
-  const [busquedaCliente, setBusquedaCliente] = useState('');
+  const [productosDelPedido, setProductosDelPedido] = useState<
+    PedidoProducto[]
+  >([]);
+  const [comentarios, setComentarios] = useState("");
+  const [fechaPedido, setFechaPedido] = useState("");
+  const [busquedaCliente, setBusquedaCliente] = useState("");
   const [buscandoClientes, setBuscandoClientes] = useState(false);
-  const [busquedaProducto, setBusquedaProducto] = useState('');
+  const [busquedaProducto, setBusquedaProducto] = useState("");
   const [buscandoProductos, setBuscandoProductos] = useState(false);
   const [mostrarListaClientes, setMostrarListaClientes] = useState(false);
 
   // Notificaciones
   const [notificacion, setNotificacion] = useState({
     open: false,
-    message: '',
-    severity: 'success' as 'success' | 'error' | 'info',
+    message: "",
+    severity: "success" as "success" | "error" | "info",
   });
 
   // Diálogo de confirmación / envío
@@ -61,16 +70,17 @@ const PedidosPage: React.FC = () => {
   const [enviandoPedido, setEnviandoPedido] = useState(false);
 
   // Derivado: habilitar productos sólo cuando hay cliente y listaProductos cargada
-  const productosHabilitados = !!clienteSeleccionado && listaProductos.length > 0;
+  const productosHabilitados =
+    !!clienteSeleccionado && listaProductos.length > 0;
 
   // Fecha inicial
   useEffect(() => {
     setFechaPedido(
-      new Date().toLocaleDateString('es-CO', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      })
+      new Date().toLocaleDateString("es-CO", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      }),
     );
   }, []);
 
@@ -80,11 +90,11 @@ const PedidosPage: React.FC = () => {
     setListaClientes([]);
     setListaProductos([]);
     setProductosDelPedido([]);
-    setComentarios('');
-    setBusquedaCliente('');
-    setBusquedaProducto('');
+    setComentarios("");
+    setBusquedaCliente("");
+    setBusquedaProducto("");
     setMostrarListaClientes(false);
-    setNotificacion({ open: false, message: '', severity: 'success' });
+    setNotificacion({ open: false, message: "", severity: "success" });
   };
 
   // -------- Buscar clientes (al presionar lupa) --------
@@ -94,8 +104,8 @@ const PedidosPage: React.FC = () => {
     if (termino.length < 3) {
       setNotificacion({
         open: true,
-        message: 'Ingrese al menos 3 letras para buscar.',
-        severity: 'info',
+        message: "Ingrese al menos 3 letras para buscar.",
+        severity: "info",
       });
       return;
     }
@@ -104,13 +114,13 @@ const PedidosPage: React.FC = () => {
     setClienteSeleccionado(null);
     setListaProductos([]);
     setProductosDelPedido([]);
-    setComentarios('');
+    setComentarios("");
     setMostrarListaClientes(false);
     setListaClientes([]);
 
     setBuscandoClientes(true);
     try {
-      const token = localStorage.getItem('session_token') || '';
+      const token = localStorage.getItem("session_token") || "";
       const clientes = await getClients(token, termino);
       setListaClientes(clientes || []);
       setMostrarListaClientes(true);
@@ -118,15 +128,16 @@ const PedidosPage: React.FC = () => {
       if (!clientes || clientes.length === 0) {
         setNotificacion({
           open: true,
-          message: 'No se encontraron clientes con el criterio de búsqueda.',
-          severity: 'info',
+          message: "No se encontraron clientes con el criterio de búsqueda.",
+          severity: "info",
         });
       }
     } catch (error) {
+      console.error(`Error consultando clientes ${error}`);
       setNotificacion({
         open: true,
-        message: 'No existen clientes con el criterio de búsqueda.',
-        severity: 'error',
+        message: "No existen clientes con el criterio de búsqueda.",
+        severity: "error",
       });
     } finally {
       setBuscandoClientes(false);
@@ -141,8 +152,8 @@ const PedidosPage: React.FC = () => {
     setBusquedaCliente(`${cliente.razonSocial} - ${cliente.nit}`);
     setListaProductos([]);
     setProductosDelPedido([]);
-    setBusquedaProducto('');
-    setComentarios('');
+    setBusquedaProducto("");
+    setComentarios("");
   };
 
   // -------- Buscar productos (al presionar lupa) --------
@@ -153,8 +164,8 @@ const PedidosPage: React.FC = () => {
     if (termino.length < 3) {
       setNotificacion({
         open: true,
-        message: 'Ingrese al menos 3 letras para buscar productos.',
-        severity: 'info',
+        message: "Ingrese al menos 3 letras para buscar productos.",
+        severity: "info",
       });
       return;
     }
@@ -164,21 +175,27 @@ const PedidosPage: React.FC = () => {
     setProductosDelPedido([]);
 
     try {
-      const token = localStorage.getItem('session_token') || '';
-      const productos = await getProducts(token, clienteSeleccionado.nit, clienteSeleccionado.sucursal.toString(), termino);
+      const token = localStorage.getItem("session_token") || "";
+      const productos = await getProducts(
+        token,
+        clienteSeleccionado.nit,
+        clienteSeleccionado.sucursal.toString(),
+        termino,
+      );
       setListaProductos(productos || []);
       if (!productos || productos.length === 0) {
         setNotificacion({
           open: true,
-          message: 'No se encontraron productos con el criterio de búsqueda.',
-          severity: 'info',
+          message: "No se encontraron productos con el criterio de búsqueda.",
+          severity: "info",
         });
       }
     } catch (error) {
+      console.error(`Error obteniendo productos: ${error}`);
       setNotificacion({
         open: true,
-        message: 'No existen productos con el criterio de búsqueda.',
-        severity: 'error',
+        message: "No existen productos con el criterio de búsqueda.",
+        severity: "error",
       });
     } finally {
       setBuscandoProductos(false);
@@ -192,22 +209,22 @@ const PedidosPage: React.FC = () => {
     if (existe) {
       setNotificacion({
         open: true,
-        message: 'El producto ya fue agregado.',
-        severity: 'info',
+        message: "El producto ya fue agregado.",
+        severity: "info",
       });
       return;
     }
 
-    if ((producto as any).stock !== undefined && (producto as any).stock <= 0) {
+    if (producto.stock && producto.stock <= 0) {
       setNotificacion({
         open: true,
-        message: 'El producto no tiene stock disponible.',
-        severity: 'error',
+        message: "El producto no tiene stock disponible.",
+        severity: "error",
       });
       return;
     }
 
-    setProductosDelPedido((prev) => [...prev, { ...(producto as any), cantidad: 1 }]);
+    setProductosDelPedido((prev) => [...prev, { ...producto, cantidad: 1 }]);
   };
 
   // -------- Actualizar cantidad --------
@@ -215,7 +232,9 @@ const PedidosPage: React.FC = () => {
     const producto = productosDelPedido.find((p) => p.id === id);
     if (!producto) return;
     const nueva = Math.max(1, Math.trunc(cantidad));
-    setProductosDelPedido((prev) => prev.map((p) => (p.id === id ? { ...p, cantidad: nueva } : p)));
+    setProductosDelPedido((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, cantidad: nueva } : p)),
+    );
   };
 
   // -------- Remover producto --------
@@ -226,12 +245,12 @@ const PedidosPage: React.FC = () => {
   // -------- Validación de stock antes de enviar --------
   const validarStockAntesDeEnviar = (): boolean => {
     for (const p of productosDelPedido) {
-      const stock = (p as any).stock;
+      const stock = p.stock;
       if (stock !== undefined && p.cantidad > stock) {
         setNotificacion({
           open: true,
           message: `Cantidad mayor al stock disponible para ${p.nombre}. Corrige la cantidad.`,
-          severity: 'info',
+          severity: "info",
         });
         return false;
       }
@@ -240,8 +259,14 @@ const PedidosPage: React.FC = () => {
   };
 
   // -------- Totales --------
-  const subtotalPedido = productosDelPedido.reduce((t, p) => t + p.precio * p.cantidad, 0);
-  const ivaTotal = productosDelPedido.reduce((t, p) => t + p.precio * p.cantidad * (p.porcentajeImpuesto / 100), 0);
+  const subtotalPedido = productosDelPedido.reduce(
+    (t, p) => t + p.precio * p.cantidad,
+    0,
+  );
+  const ivaTotal = productosDelPedido.reduce(
+    (t, p) => t + p.precio * p.cantidad * (p.porcentajeImpuesto / 100),
+    0,
+  );
   const totalPedido = subtotalPedido + ivaTotal;
 
   // -------- Envío del pedido --------
@@ -250,12 +275,20 @@ const PedidosPage: React.FC = () => {
 
   const handleEnviarPedido = async () => {
     if (!clienteSeleccionado) {
-      setNotificacion({ open: true, message: 'Selecciona un cliente antes de enviar.', severity: 'info' });
+      setNotificacion({
+        open: true,
+        message: "Selecciona un cliente antes de enviar.",
+        severity: "info",
+      });
       return;
     }
 
     if (productosDelPedido.length === 0) {
-      setNotificacion({ open: true, message: 'Agrega al menos un producto al pedido.', severity: 'info' });
+      setNotificacion({
+        open: true,
+        message: "Agrega al menos un producto al pedido.",
+        severity: "info",
+      });
       return;
     }
 
@@ -268,27 +301,42 @@ const PedidosPage: React.FC = () => {
     setAbrirDialogo(false);
 
     const pedido: CrearPedido = {
-      comentarios: comentarios || '',
+      comentarios: comentarios || "",
       nit: clienteSeleccionado.nit,
       idsuc: clienteSeleccionado.sucursal,
-      productos: productosDelPedido.map((p) => ({ idProducto: (p as any).codigo, cantidad: p.cantidad } as ProductoPedido)),
+      productos: productosDelPedido.map(
+        (p) =>
+          ({
+            idProducto: p.codigo,
+            cantidad: p.cantidad,
+          }) as ProductoPedido,
+      ),
     };
 
     try {
-      const token = localStorage.getItem('session_token') || '';
+      const token = localStorage.getItem("session_token") || "";
       const response = await guardarPedido(token, pedido);
       if (response && response.pedido) {
         resetToInitial();
         setNotificacion({
           open: true,
           message: `Pedido ${response.pedido.id} enviado correctamente.`,
-          severity: 'success',
+          severity: "success",
         });
       } else {
-        setNotificacion({ open: true, message: 'No se pudo enviar el pedido.', severity: 'error' });
+        setNotificacion({
+          open: true,
+          message: "No se pudo enviar el pedido.",
+          severity: "error",
+        });
       }
     } catch (error) {
-      setNotificacion({ open: true, message: 'Error al enviar el pedido.', severity: 'error' });
+      console.error(`Error enviando el pedido ${error}`);
+      setNotificacion({
+        open: true,
+        message: "Error al enviar el pedido.",
+        severity: "error",
+      });
     } finally {
       setEnviandoPedido(false);
     }
@@ -302,14 +350,20 @@ const PedidosPage: React.FC = () => {
           <Typography variant="h4">Crear Nuevo Pedido</Typography>
 
           {/* Mensaje guía */}
-          {(!clienteSeleccionado && productosDelPedido.length === 0 && listaClientes.length === 0) && (
-            <Typography variant="body2" color="textSecondary">
-              Seleccione un cliente para iniciar un pedido
-            </Typography>
-          )}
+          {!clienteSeleccionado &&
+            productosDelPedido.length === 0 &&
+            listaClientes.length === 0 && (
+              <Typography variant="body2" color="textSecondary">
+                Seleccione un cliente para iniciar un pedido
+              </Typography>
+            )}
 
           {/* Búsqueda de cliente */}
-          <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems="center">
+          <Stack
+            direction={{ xs: "column", md: "row" }}
+            spacing={2}
+            alignItems="center"
+          >
             <TextField
               label="Ingrese al menos 3 letras del nombre del cliente"
               value={busquedaCliente}
@@ -318,21 +372,43 @@ const PedidosPage: React.FC = () => {
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
-                    <IconButton onClick={handleBuscarClientes} color="primary" disabled={buscandoClientes}>
-                      {buscandoClientes ? <CircularProgress size={20} /> : <SearchIcon />}
+                    <IconButton
+                      onClick={handleBuscarClientes}
+                      color="primary"
+                      disabled={buscandoClientes}
+                    >
+                      {buscandoClientes ? (
+                        <CircularProgress size={20} />
+                      ) : (
+                        <SearchIcon />
+                      )}
                     </IconButton>
                   </InputAdornment>
                 ),
               }}
             />
-            <TextField label="Fecha del Pedido" value={fechaPedido} fullWidth InputProps={{ readOnly: true }} sx={{ maxWidth: { md: '320px' } }} />
+            <TextField
+              label="Fecha del Pedido"
+              value={fechaPedido}
+              fullWidth
+              InputProps={{ readOnly: true }}
+              sx={{ maxWidth: { md: "320px" } }}
+            />
           </Stack>
 
           {/* Lista de clientes */}
           {mostrarListaClientes && listaClientes.length > 0 && (
-            <Paper variant="outlined" sx={{ maxHeight: 260, overflow: 'auto' }}>
+            <Paper variant="outlined" sx={{ maxHeight: 260, overflow: "auto" }}>
               {listaClientes.map((c) => (
-                <Box key={`${c.id}`} sx={{ p: 1, borderBottom: '1px solid #eee', cursor: 'pointer' }} onClick={() => handleSeleccionarCliente(c)}>
+                <Box
+                  key={`${c.id}`}
+                  sx={{
+                    p: 1,
+                    borderBottom: "1px solid #eee",
+                    cursor: "pointer",
+                  }}
+                  onClick={() => handleSeleccionarCliente(c)}
+                >
                   <Typography variant="subtitle2">{c.razonSocial}</Typography>
                   <Typography variant="body2" color="textSecondary">
                     NIT: {c.nit} — Sucursal: {c.direccion}
@@ -346,13 +422,29 @@ const PedidosPage: React.FC = () => {
           {clienteSeleccionado && (
             <Card variant="outlined">
               <CardContent>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "flex-start",
+                  }}
+                >
                   <Box>
-                    <Typography variant="h6">{clienteSeleccionado.direccion}</Typography>
-                    <Typography variant="body2"><strong>Dirección:</strong> {clienteSeleccionado.direccion}</Typography>
-                    <Typography variant="body2"><strong>Ubicación:</strong> {clienteSeleccionado.ciudad}, {clienteSeleccionado.departamento}</Typography>
+                    <Typography variant="h6">
+                      {clienteSeleccionado.direccion}
+                    </Typography>
+                    <Typography variant="body2">
+                      <strong>Dirección:</strong>{" "}
+                      {clienteSeleccionado.direccion}
+                    </Typography>
+                    <Typography variant="body2">
+                      <strong>Ubicación:</strong> {clienteSeleccionado.ciudad},{" "}
+                      {clienteSeleccionado.departamento}
+                    </Typography>
                   </Box>
-                  <IconButton onClick={resetToInitial}><ClearIcon /></IconButton>
+                  <IconButton onClick={resetToInitial}>
+                    <ClearIcon />
+                  </IconButton>
                 </Box>
               </CardContent>
             </Card>
@@ -365,13 +457,23 @@ const PedidosPage: React.FC = () => {
             <TextField
               label="Ingrese al menos 3 letras del producto"
               value={busquedaProducto}
-              onChange={(e) => setBusquedaProducto(e.target.value.toUpperCase())}
+              onChange={(e) =>
+                setBusquedaProducto(e.target.value.toUpperCase())
+              }
               fullWidth
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
-                    <IconButton onClick={handleBuscarProductos} color="primary" disabled={buscandoProductos}>
-                      {buscandoProductos ? <CircularProgress size={20} /> : <SearchIcon />}
+                    <IconButton
+                      onClick={handleBuscarProductos}
+                      color="primary"
+                      disabled={buscandoProductos}
+                    >
+                      {buscandoProductos ? (
+                        <CircularProgress size={20} />
+                      ) : (
+                        <SearchIcon />
+                      )}
                     </IconButton>
                   </InputAdornment>
                 ),
@@ -383,18 +485,26 @@ const PedidosPage: React.FC = () => {
           <Autocomplete
             disabled={!productosHabilitados || buscandoProductos}
             options={listaProductos}
-            getOptionLabel={(option) => `${option.codigo} | ${option.nombre} | Marca: ${option.marca} | Stock: ${option.stock}`}
+            getOptionLabel={(option) =>
+              `${option.codigo} | ${option.nombre} | Marca: ${option.marca} | Stock: ${option.stock}`
+            }
             onChange={(_, value) => handleAddProducto(value)}
             renderInput={(params) => (
               <TextField
                 {...params}
                 label="Agregar Producto al Pedido"
-                helperText={!productosHabilitados ? 'Seleccione un cliente para habilitar la búsqueda de productos' : ''}
+                helperText={
+                  !productosHabilitados
+                    ? "Seleccione un cliente para habilitar la búsqueda de productos"
+                    : ""
+                }
                 InputProps={{
                   ...params.InputProps,
                   endAdornment: (
                     <>
-                      {(buscandoProductos || buscandoProductos) ? <CircularProgress color="inherit" size={20} /> : null}
+                      {buscandoProductos || buscandoProductos ? (
+                        <CircularProgress color="inherit" size={20} />
+                      ) : null}
                       {params.InputProps.endAdornment}
                     </>
                   ),
@@ -420,7 +530,9 @@ const PedidosPage: React.FC = () => {
               <TableBody>
                 {productosDelPedido.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} align="center">Agrega productos para comenzar</TableCell>
+                    <TableCell colSpan={7} align="center">
+                      Agrega productos para comenzar
+                    </TableCell>
                   </TableRow>
                 ) : (
                   productosDelPedido.map((p) => {
@@ -428,22 +540,58 @@ const PedidosPage: React.FC = () => {
                     const ivaProd = valorTotal * (p.porcentajeImpuesto / 100);
                     return (
                       <TableRow key={p.id}>
-                        <TableCell>{(p as any).codigo} - {p.nombre}</TableCell>
-                        <TableCell align="right">{p.precio.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}</TableCell>
+                        <TableCell>
+                          {p.codigo} - {p.nombre}
+                        </TableCell>
+                        <TableCell align="right">
+                          {p.precio.toLocaleString("es-CO", {
+                            style: "currency",
+                            currency: "COP",
+                          })}
+                        </TableCell>
                         <TableCell align="center">
                           <TextField
                             type="number"
                             value={p.cantidad}
-                            onChange={(e) => handleUpdateCantidad(p.id, parseInt(e.target.value || '0', 10))}
-                            inputProps={{ min: 1, max: (p as any).stock ?? undefined, style: { textAlign: 'center' } }}
-                            sx={{ width: '80px' }}
+                            onChange={(e) =>
+                              handleUpdateCantidad(
+                                p.id,
+                                parseInt(e.target.value || "0", 10),
+                              )
+                            }
+                            inputProps={{
+                              min: 1,
+                              max: p.stock ?? undefined,
+                              style: { textAlign: "center" },
+                            }}
+                            sx={{ width: "80px" }}
                           />
                         </TableCell>
-                        <TableCell align="right">{valorTotal.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}</TableCell>
-                        <TableCell align="right">{ivaProd.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}</TableCell>
-                        <TableCell align="right">{(valorTotal + ivaProd).toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}</TableCell>
+                        <TableCell align="right">
+                          {valorTotal.toLocaleString("es-CO", {
+                            style: "currency",
+                            currency: "COP",
+                          })}
+                        </TableCell>
+                        <TableCell align="right">
+                          {ivaProd.toLocaleString("es-CO", {
+                            style: "currency",
+                            currency: "COP",
+                          })}
+                        </TableCell>
+                        <TableCell align="right">
+                          {(valorTotal + ivaProd).toLocaleString("es-CO", {
+                            style: "currency",
+                            currency: "COP",
+                          })}
+                        </TableCell>
                         <TableCell align="center">
-                          <IconButton color="error" onClick={() => handleRemoveProducto(p.id)}><DeleteIcon /></IconButton>
+                          <IconButton
+                            color="error"
+                            onClick={() => handleRemoveProducto(p.id)}
+                          >
+                            <DeleteIcon />
+                          </IconButton>
                         </TableCell>
                       </TableRow>
                     );
@@ -472,10 +620,20 @@ const PedidosPage: React.FC = () => {
               variant="contained"
               color="primary"
               onClick={handleConfirmarEnvio}
-              disabled={productosDelPedido.length === 0 || !clienteSeleccionado || enviandoPedido}
-              startIcon={enviandoPedido ? <CircularProgress size={20} color="inherit" /> : <SendIcon />}
+              disabled={
+                productosDelPedido.length === 0 ||
+                !clienteSeleccionado ||
+                enviandoPedido
+              }
+              startIcon={
+                enviandoPedido ? (
+                  <CircularProgress size={20} color="inherit" />
+                ) : (
+                  <SendIcon />
+                )
+              }
             >
-              {enviandoPedido ? 'Enviando...' : 'Enviar Pedido'}
+              {enviandoPedido ? "Enviando..." : "Enviar Pedido"}
             </Button>
           </Stack>
         </Stack>
@@ -485,13 +643,33 @@ const PedidosPage: React.FC = () => {
       <Dialog open={abrirDialogo} onClose={handleCancelarEnvio}>
         <DialogTitle>Confirmar Envío</DialogTitle>
         <DialogContent>
-          <Typography><strong>Cliente:</strong> {clienteSeleccionado?.razonSocial}</Typography>
-          <Typography><strong>Total:</strong> {totalPedido.toLocaleString('es-CO', { style: 'currency', currency: 'COP' })}</Typography>
-          {comentarios && <Typography><strong>Comentarios:</strong> {comentarios}</Typography>}
+          <Typography>
+            <strong>Cliente:</strong> {clienteSeleccionado?.razonSocial}
+          </Typography>
+          <Typography>
+            <strong>Total:</strong>{" "}
+            {totalPedido.toLocaleString("es-CO", {
+              style: "currency",
+              currency: "COP",
+            })}
+          </Typography>
+          {comentarios && (
+            <Typography>
+              <strong>Comentarios:</strong> {comentarios}
+            </Typography>
+          )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCancelarEnvio} color="inherit">Cancelar</Button>
-          <Button onClick={handleEnviarPedido} color="primary" variant="contained">Confirmar Envío</Button>
+          <Button onClick={handleCancelarEnvio} color="inherit">
+            Cancelar
+          </Button>
+          <Button
+            onClick={handleEnviarPedido}
+            color="primary"
+            variant="contained"
+          >
+            Confirmar Envío
+          </Button>
         </DialogActions>
       </Dialog>
 
@@ -500,9 +678,13 @@ const PedidosPage: React.FC = () => {
         open={notificacion.open}
         autoHideDuration={4000}
         onClose={() => setNotificacion({ ...notificacion, open: false })}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
-        <Alert severity={notificacion.severity} sx={{ width: '100%' }} variant="filled">
+        <Alert
+          severity={notificacion.severity}
+          sx={{ width: "100%" }}
+          variant="filled"
+        >
           {notificacion.message}
         </Alert>
       </Snackbar>
