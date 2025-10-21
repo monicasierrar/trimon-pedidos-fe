@@ -84,7 +84,7 @@ const getData = async (
 const postData = async (
   token: string,
   endpoint: string,
-  data: Record<string, string>,
+  data: Record<string, any>,
 ): Promise<any> => {
   try {
     const response: AxiosResponse = await axios.post(
