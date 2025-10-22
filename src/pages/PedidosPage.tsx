@@ -51,7 +51,6 @@ const PedidosPage: React.FC = () => {
     PedidoProducto[]
   >([]);
   const [comentarios, setComentarios] = useState("");
-  const [fechaPedido, setFechaPedido] = useState("");
   const [busquedaCliente, setBusquedaCliente] = useState("");
   const [buscandoClientes, setBuscandoClientes] = useState(false);
   const [busquedaProducto, setBusquedaProducto] = useState("");
@@ -72,17 +71,6 @@ const PedidosPage: React.FC = () => {
   // Derivado: habilitar productos sólo cuando hay cliente y listaProductos cargada
   const productosHabilitados =
     !!clienteSeleccionado && listaProductos.length > 0;
-
-  // Fecha inicial
-  useEffect(() => {
-    setFechaPedido(
-      new Date().toLocaleDateString("es-CO", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      }),
-    );
-  }, []);
 
   // -------- Función: limpiar TODO al volver al estado inicial --------
   const resetToInitial = () => {
@@ -388,13 +376,6 @@ const PedidosPage: React.FC = () => {
                   </InputAdornment>
                 ),
               }}
-            />
-            <TextField
-              label="Fecha del Pedido"
-              value={fechaPedido}
-              fullWidth
-              InputProps={{ readOnly: true }}
-              sx={{ maxWidth: { md: "320px" } }}
             />
           </Stack>
 
