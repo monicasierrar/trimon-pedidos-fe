@@ -27,6 +27,7 @@ const LogTransaccionesPage = () => {
 
   const handleBuscar = () => {
     if (fechaInicio && fechaFin) {
+      setTransaccionesFiltradas([]);
       getTransacciones(
         localStorage.getItem("session_token") || "",
         `${fechaInicio.format("YYYY-MM-DD")}`,
@@ -62,11 +63,13 @@ const LogTransaccionesPage = () => {
             alignItems="center"
           >
             <DatePicker
+              format="YYYY-MM-DD"
               label="Fecha de Inicio"
               value={fechaInicio}
               onChange={(newValue) => setFechaInicio(newValue)}
             />
             <DatePicker
+              format="YYYY-MM-DD"
               label="Fecha de Fin"
               value={fechaFin}
               onChange={(newValue) => setFechaFin(newValue)}
@@ -92,9 +95,7 @@ const LogTransaccionesPage = () => {
               <TableBody>
                 {transaccionesFiltradas.map((transaccion) => (
                   <TableRow key={transaccion.id}>
-                    <TableCell>
-                      {new Date(transaccion.fecha).toLocaleDateString("es-CO")}
-                    </TableCell>
+                    <TableCell>{transaccion.fecha}</TableCell>
                     <TableCell>{transaccion.id}</TableCell>
                     <TableCell align="center">
                       {getStatusChip(transaccion.estado)}

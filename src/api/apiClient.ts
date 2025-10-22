@@ -38,7 +38,7 @@ export const getProducts = async (
   sucursalId: string,
   filtro?: string,
 ): Promise<Producto[]> => {
-  const filtroParam = filtro ? `&filtro=${filtro.toUpperCase()}` : "";
+  const filtroParam = filtro ? `&search=${filtro.toUpperCase()}` : "";
   return getData(
     `${PRODUCTS_ENDPOINT}?clientenit=${clientenit}&sucursalId=${sucursalId}${filtroParam}`,
     token,

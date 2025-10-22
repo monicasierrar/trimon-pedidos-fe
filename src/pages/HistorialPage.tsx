@@ -89,6 +89,8 @@ const HistorialPage = () => {
     const inicioStr = fechaInicio!.format("YYYY-MM-DD");
     const finStr = fechaFin!.format("YYYY-MM-DD");
 
+    setPedidosFiltrados([]);
+
     try {
       const pedidosResultado = await getHistorialPedidos(
         localStorage.getItem("session_token") || "",
@@ -112,6 +114,7 @@ const HistorialPage = () => {
       setAnimarChips(false);
       setTimeout(() => setAnimarChips(true), 50);
     } catch (error) {
+      console.error(`Error buscando pedidos: ${error}`);
       setPedidosFiltrados([]);
     }
   };
@@ -181,9 +184,7 @@ const HistorialPage = () => {
                 ) : (
                   pedidosFiltrados.map((pedido, index) => (
                     <TableRow key={pedido.id}>
-                      <TableCell align="center">
-                        {dayjs(pedido.fecha).format("DD/MM/YYYY")}
-                      </TableCell>
+                      <TableCell align="center">{pedido.fecha}</TableCell>
                       <TableCell align="center">{pedido.id}</TableCell>
                       <TableCell>{pedido.cliente}</TableCell>
                       <TableCell align="right">

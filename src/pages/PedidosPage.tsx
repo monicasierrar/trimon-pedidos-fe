@@ -40,6 +40,7 @@ import {
   ProductoPedido,
 } from "../api/types";
 import { getClients, getProducts, guardarPedido } from "../api/apiClient";
+import { ArrowDropDown, ArrowDropUp } from "@mui/icons-material";
 
 const PedidosPage: React.FC = () => {
   // Estados principales
@@ -205,7 +206,7 @@ const PedidosPage: React.FC = () => {
   // -------- Agregar producto al pedido --------
   const handleAddProducto = (producto: Producto | null) => {
     if (!producto) return;
-    const existe = productosDelPedido.some((p) => p.id === producto.id);
+    const existe = productosDelPedido.some((p) => p.codigo === producto.codigo);
     if (existe) {
       setNotificacion({
         open: true,
@@ -224,17 +225,19 @@ const PedidosPage: React.FC = () => {
       return;
     }
 
-    setProductosDelPedido((prev) => [...prev, { ...producto, cantidad: 1 }]);
+    setProductosDelPedido([
+      ...productosDelPedido,
+      { ...producto, cantidad: 1 },
+    ]);
   };
 
   // -------- Actualizar cantidad --------
-  const handleUpdateCantidad = (id: number, cantidad: number) => {
-    const producto = productosDelPedido.find((p) => p.id === id);
+  const handleUpdateCantidad = (codigo: string, cantidad: number) => {
+    const productosPedido = [...productosDelPedido];
+    const producto = productosPedido.find((p) => p.codigo === codigo);
     if (!producto) return;
-    const nueva = Math.max(1, Math.trunc(cantidad));
-    setProductosDelPedido((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, cantidad: nueva } : p)),
-    );
+    producto.cantidad = Math.max(1, Math.trunc(cantidad));
+    setProductosDelPedido(productosPedido);
   };
 
   // -------- Remover producto --------
@@ -555,15 +558,10 @@ const PedidosPage: React.FC = () => {
                             value={p.cantidad}
                             onChange={(e) =>
                               handleUpdateCantidad(
-                                p.id,
+                                p.codigo,
                                 parseInt(e.target.value || "0", 10),
                               )
                             }
-                            inputProps={{
-                              min: 1,
-                              max: p.stock ?? undefined,
-                              style: { textAlign: "center" },
-                            }}
                             sx={{ width: "80px" }}
                           />
                         </TableCell>
