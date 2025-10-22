@@ -40,7 +40,6 @@ import {
   ProductoPedido,
 } from "../api/types";
 import { getClients, getProducts, guardarPedido } from "../api/apiClient";
-import { ArrowDropDown, ArrowDropUp } from "@mui/icons-material";
 
 const PedidosPage: React.FC = () => {
   // Estados principales
