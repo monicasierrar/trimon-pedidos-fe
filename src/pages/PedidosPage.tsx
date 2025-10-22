@@ -1,5 +1,5 @@
 // PedidosPage con búsqueda por cliente y productos
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { AppLayout } from "../components/AppLayout";
 import {
   Autocomplete,
