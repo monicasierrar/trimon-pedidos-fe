@@ -135,13 +135,13 @@ const HistorialPage = () => {
                 label="Fecha de Inicio"
                 value={fechaInicio}
                 onChange={(newValue) => setFechaInicio(newValue)}
-                format="DD/MM/YYYY"
+                format="YYYY-MM-DD"
               />
               <DatePicker
                 label="Fecha de Fin"
                 value={fechaFin}
                 onChange={(newValue) => setFechaFin(newValue)}
-                format="DD/MM/YYYY"
+                format="YYYY-MM-DD"
               />
               <IconButton
                 color="primary"
