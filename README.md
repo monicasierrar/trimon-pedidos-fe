@@ -1,9 +1,12 @@
 # Trimon Pedidos FE
 
 ## Variables de entorno requeridas
- - VITE_API_BASE_URL: URL del API
+ - VITE_API_BASE_URL="https://pedidos-api.trimon.co/webhook"`
+ - VITE_ZOHO_CLIENT_ID: Cliente id de zohomail console para hacer login
+ - VITE_REDIRECT_URI="https://pedidos-api.trimon.co/webhook/authorize"
+ - VITE_USE_AUTH="true"
 
-## Como ejecutar el codigo en GitHub codespaces 
+## Como ejecutar el codigo en GitHub codespaces
 ### Ejecucion `mockApi`
 Si no se tiene acceso al backend se puede usar un servidor mock de la siguiente manera
 1. Navegar a `mockApi`

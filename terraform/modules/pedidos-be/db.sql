@@ -53,3 +53,6 @@ INSERT INTO pedidosDB.estado (id, estado) VALUES
 	 (2, 'Procesando'),
     (3, 'Finalizado'),
 	 (4, 'Error');
+
+ALTER TABLE pedidosDB.pedido
+ADD COLUMN created_at TIMESTAMP NOT NULL DEFAULT NOW();

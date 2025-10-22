@@ -26,7 +26,6 @@ export interface Producto {
 
 export interface PedidoProducto extends Producto {
   cantidad: number;
-  
 }
 
 export interface HistorialPedidos {
@@ -34,16 +33,19 @@ export interface HistorialPedidos {
   fecha: string; // Usaremos formato ISO "YYYY-MM-DD" para facilitar el filtrado
   cliente: string;
   total: number;
-  estado: 'Abierto' | 'Cerrado' | 'Facturado' | 'Parcial' | 'Pendiente';
+  estado: "Abierto" | "Cerrado" | "Facturado" | "Parcial" | "Pendiente";
 }
 
 export interface Transaccion {
   id: string; // Corresponde al número del pedido
   fecha: string; // Formato "YYYY-MM-DD"
-  estado: 'Procesado' | 'Error' | 'Pendiente';
+  estado: "Procesado" | "Error" | "Pendiente";
 }
 
 export interface ProductoPedido {
+  id: string;
+  estado: string;
+  fecha: string;
   cantidad: number;
   idProducto: string;
 }
@@ -52,5 +54,5 @@ export interface CrearPedido {
   comentarios: string;
   idsuc: number;
   nit: string;
-  productos: ProductoPedido[]
+  productos: ProductoPedido[];
 }
