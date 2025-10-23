@@ -160,7 +160,6 @@ const PedidosPage: React.FC = () => {
 
     setBuscandoProductos(true);
     setListaProductos([]);
-    setProductosDelPedido([]);
 
     try {
       const token = localStorage.getItem("session_token") || "";
