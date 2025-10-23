@@ -227,8 +227,9 @@ const PedidosPage: React.FC = () => {
   };
 
   // -------- Remover producto --------
-  const handleRemoveProducto = (id: number) => {
-    setProductosDelPedido((prev) => prev.filter((p) => p.id !== id));
+  const handleRemoveProducto = (codigo: string) => {
+    const items = productosDelPedido.filter((item) => item.codigo !== codigo);
+    setProductosDelPedido(items);
   };
 
   // -------- Validación de stock antes de enviar --------
@@ -565,7 +566,7 @@ const PedidosPage: React.FC = () => {
                         <TableCell align="center">
                           <IconButton
                             color="error"
-                            onClick={() => handleRemoveProducto(p.id)}
+                            onClick={() => handleRemoveProducto(p.codigo)}
                           >
                             <DeleteIcon />
                           </IconButton>
