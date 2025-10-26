@@ -25,7 +25,7 @@ export interface Producto {
 }
 
 export interface PedidoProducto extends Producto {
-  cantidad: number;
+  cantidad: string;
 }
 
 export interface HistorialPedidos {
@@ -46,7 +46,7 @@ export interface ProductoPedido {
   id: string;
   estado: string;
   fecha: string;
-  cantidad: number;
+  cantidad: string;
   idProducto: string;
 }
 

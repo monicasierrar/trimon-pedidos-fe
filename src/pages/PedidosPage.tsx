@@ -213,16 +213,16 @@ const PedidosPage: React.FC = () => {
 
     setProductosDelPedido([
       ...productosDelPedido,
-      { ...producto, cantidad: 1 },
+      { ...producto, cantidad: "" },
     ]);
   };
 
   // -------- Actualizar cantidad --------
-  const handleUpdateCantidad = (codigo: string, cantidad: number) => {
+  const handleUpdateCantidad = (codigo: string, cantidad: string) => {
     const productosPedido = [...productosDelPedido];
     const producto = productosPedido.find((p) => p.codigo === codigo);
     if (!producto) return;
-    producto.cantidad = Math.max(1, Math.trunc(cantidad));
+    producto.cantidad = cantidad;
     setProductosDelPedido(productosPedido);
   };
 
@@ -232,31 +232,19 @@ const PedidosPage: React.FC = () => {
     setProductosDelPedido(items);
   };
 
-  // -------- Validación de stock antes de enviar --------
-  const validarStockAntesDeEnviar = (): boolean => {
-    for (const p of productosDelPedido) {
-      const stock = p.stock;
-      if (stock !== undefined && p.cantidad > stock) {
-        setNotificacion({
-          open: true,
-          message: `Cantidad mayor al stock disponible para ${p.nombre}. Corrige la cantidad.`,
-          severity: "info",
-        });
-        return false;
-      }
-    }
-    return true;
-  };
+  const { subtotalPedido, ivaTotal } = productosDelPedido.reduce(
+    (totals, item) => {
+      const costoProducto = item.precio * Number(item.cantidad);
+      const ivaProducto = costoProducto * (item.porcentajeImpuesto / 100);
 
-  // -------- Totales --------
-  const subtotalPedido = productosDelPedido.reduce(
-    (t, p) => t + p.precio * p.cantidad,
-    0,
+      totals.subtotalPedido += costoProducto;
+      totals.ivaTotal += ivaProducto;
+
+      return totals;
+    },
+    { subtotalPedido: 0, ivaTotal: 0 },
   );
-  const ivaTotal = productosDelPedido.reduce(
-    (t, p) => t + p.precio * p.cantidad * (p.porcentajeImpuesto / 100),
-    0,
-  );
+
   const totalPedido = subtotalPedido + ivaTotal;
 
   // -------- Envío del pedido --------
@@ -282,8 +270,14 @@ const PedidosPage: React.FC = () => {
       return;
     }
 
-    if (!validarStockAntesDeEnviar()) {
-      setAbrirDialogo(false);
+    if (
+      productosDelPedido.filter((item) => Number(item.cantidad) <= 0).length
+    ) {
+      setNotificacion({
+        open: true,
+        message: "Tiene un producto con cantidad inválida",
+        severity: "info",
+      });
       return;
     }
 
@@ -519,8 +513,12 @@ const PedidosPage: React.FC = () => {
                   </TableRow>
                 ) : (
                   productosDelPedido.map((p) => {
-                    const valorTotal = p.precio * p.cantidad;
-                    const ivaProd = valorTotal * (p.porcentajeImpuesto / 100);
+                    const valorTotal = p.cantidad
+                      ? p.precio * Number(p.cantidad)
+                      : 0;
+                    const ivaProd = valorTotal
+                      ? valorTotal * (p.porcentajeImpuesto / 100)
+                      : 0;
                     return (
                       <TableRow key={p.id}>
                         <TableCell>
@@ -534,14 +532,14 @@ const PedidosPage: React.FC = () => {
                         </TableCell>
                         <TableCell align="center">
                           <TextField
-                            type="number"
                             value={p.cantidad}
-                            onChange={(e) =>
-                              handleUpdateCantidad(
-                                p.codigo,
-                                parseInt(e.target.value || "0", 10),
-                              )
-                            }
+                            onChange={(e) => {
+                              let value = "";
+                              if (!Number.isNaN(e.target.value)) {
+                                value = e.target.value;
+                              }
+                              handleUpdateCantidad(p.codigo, value);
+                            }}
                             sx={{ width: "80px" }}
                           />
                         </TableCell>

@@ -1,6 +1,6 @@
-import { useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { getUserInfo } from '../api/apiClient';
+import { useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { getUserInfo } from "../api/apiClient";
 
 const AuthCallback = () => {
   const navigate = useNavigate();
@@ -8,7 +8,7 @@ const AuthCallback = () => {
   const { search } = useLocation();
 
   const params = new URLSearchParams(search);
-  
+
   useEffect(() => {
     const fetchData = async () => {
       const accessToken = params.get("access_token");
@@ -18,8 +18,12 @@ const AuthCallback = () => {
         localStorage.setItem("session_token", accessToken);
         localStorage.setItem("expiresIn", expiresIn);
         const userInfo = await getUserInfo(accessToken);
-        localStorage.setItem("user_name", `${userInfo.displayName}`)
-        navigate("/");
+        if (userInfo.error) {
+          navigate("/login?error=" + encodeURI(userInfo.error));
+        } else {
+          localStorage.setItem("user_name", `${userInfo.displayName}`);
+          navigate("/");
+        }
       } else {
         navigate("/login");
       }
