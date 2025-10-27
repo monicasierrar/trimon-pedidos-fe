@@ -55,9 +55,10 @@ export const getUserInfo = async (token: string): Promise<any> => {
 };
 
 export const guardarPedido = async (token: string, pedido: CrearPedido) => {
-  return postData(token, PEDIDOS_ENDPOINT, pedido).catch((err) =>
-    console.log("error creando pedido: ", err),
-  );
+  return postData(token, PEDIDOS_ENDPOINT, pedido).catch((err) => {
+    console.log("error creando pedido: ", err);
+    return { status: err.status, pedido: err.response.data.pedido };
+  });
 };
 
 const getData = async (

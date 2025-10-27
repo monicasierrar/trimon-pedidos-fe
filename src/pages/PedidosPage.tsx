@@ -300,12 +300,21 @@ const PedidosPage: React.FC = () => {
     try {
       const token = localStorage.getItem("session_token") || "";
       const response = await guardarPedido(token, pedido);
-      if (response && response.pedido) {
+      if (response && response.pedido?.id) {
         resetToInitial();
         setNotificacion({
           open: true,
           message: `Pedido ${response.pedido.id} enviado correctamente.`,
           severity: "success",
+        });
+      } else if (response.status === 422) {
+        setNotificacion({
+          open: true,
+          message: `Error enviando pedido: ${response.pedido.productos
+            .filter((prod: ProductoPedido) => prod.error)
+            .map((prod: ProductoPedido) => `${prod.error} ${prod.idProducto}`)
+            .join(",")}`,
+          severity: "error",
         });
       } else {
         setNotificacion({
@@ -652,7 +661,7 @@ const PedidosPage: React.FC = () => {
       {/* Notificaciones */}
       <Snackbar
         open={notificacion.open}
-        autoHideDuration={4000}
+        autoHideDuration={5000}
         onClose={() => setNotificacion({ ...notificacion, open: false })}
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
