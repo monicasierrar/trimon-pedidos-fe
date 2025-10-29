@@ -2,11 +2,18 @@ name: Deploy Trimon Pedidos FE on Pre-Release
 
 on:
   release:
-    types: [prereleased] # This workflow runs when a new pre-release is published
+    types: [published]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.event.release.prerelease && 'pilot' || 'production' }}
 
     permissions:
       contents: write # Grant write permissions for the GITHUB_TOKEN
@@ -21,7 +28,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
 
       - name: Get version from release tag
         id: get_tag_version
@@ -37,24 +44,28 @@ jobs:
           node -e "let p=require('./package.json'); p.version='${{ env.VERSION }}'; require('fs').writeFileSync('package.json', JSON.stringify(p, null, 2));"
           echo "Updated package.json to version ${{ env.VERSION }}"
 
-      # - name: Commit package.json version update (optional but good practice)
-      #   run: |
-      #     git config user.name "github-actions[bot]"
-      #     git config user.email "github-actions[bot]@users.noreply.github.com"
-      #     git add package.json
-      #     git commit -m "chore(release): Update package.json version to ${{ env.VERSION }} from release tag [skip ci]"
-      #     git checkout gh-pages # Switch to the gh-pages branch after committing changes
-      #     git push origin gh-pages # Push changes to the gh-pages branch
+      - name: Commit package.json version update (optional but good practice)
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add package.json
+          git commit -m "chore(release): Update package.json version to ${{ env.VERSION }} from release tag [skip ci]"
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
 
       - name: Build Trimon Pedidos FE
         run: npm run build
+        env: VITE_ZOHO_CLIENT_ID=${{ vars.VITE_ZOHO_CLIENT_ID }}
+          VITE_API_BASE_URL="https://pedidos-api.trimon.co/webhook"
+          VITE_REDIRECT_URI="https://pedidos-api.trimon.co/webhook/authorize"
+          VITE_USE_AUTH="true"
 
-      - name: Deploy to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@v4
+      - name: 🔑 Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          branch: gh-pages # The branch to deploy to (adjust if needed)
-          folder: build # The folder containing your built Trimon Pedidos FE
-          token: ${{ secrets.GITHUB_TOKEN }}
+          # Use OIDC for secure, password-less authentication with AWS
+          role-to-assume: ${{ secrets.AWS_DEPLOYMENT_IAM_ROLE_ARN }}
+          aws-region: us-east-1 # Use your AWS region
+      - name: ✅ Deployment Complete
+        run: echo "Successfully deployed to the ${{ github.event.release.prerelease && 'PILOT' || 'PRODUCTION' }} environment!"
