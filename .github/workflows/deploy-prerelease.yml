@@ -21,7 +21,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
 
       - name: Get version from release tag
         id: get_tag_version
@@ -37,14 +37,12 @@ jobs:
           node -e "let p=require('./package.json'); p.version='${{ env.VERSION }}'; require('fs').writeFileSync('package.json', JSON.stringify(p, null, 2));"
           echo "Updated package.json to version ${{ env.VERSION }}"
 
-      # - name: Commit package.json version update (optional but good practice)
-      #   run: |
-      #     git config user.name "github-actions[bot]"
-      #     git config user.email "github-actions[bot]@users.noreply.github.com"
-      #     git add package.json
-      #     git commit -m "chore(release): Update package.json version to ${{ env.VERSION }} from release tag [skip ci]"
-      #     git checkout gh-pages # Switch to the gh-pages branch after committing changes
-      #     git push origin gh-pages # Push changes to the gh-pages branch
+      - name: Commit package.json version update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add package.json
+          git commit -m "chore(release): Update package.json version to ${{ env.VERSION }} from release tag [skip ci]"
 
       - name: Install dependencies
         run: npm ci
@@ -55,6 +53,17 @@ jobs:
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          branch: gh-pages # The branch to deploy to (adjust if needed)
-          folder: build # The folder containing your built Trimon Pedidos FE
-          token: ${{ secrets.GITHUB_TOKEN }}
+          # Use OIDC for secure, password-less authentication with AWS
+          role-to-assume: ${{ secrets.AWS_DEPLOYMENT_IAM_ROLE_ARN }}
+          aws-region: us-east-1 # Use your AWS region
+      - name: 🚀 Deploy to S3 and Invalidate CloudFront
+        uses: andrewdex/s3-deploy-action@v1 # A popular and effective action
+        with:
+          AWS_S3_BUCKET: ${{ vars.S3_BUCKET_NAME }} # Bucket name from environment variables
+          CLOUDFRONT_DISTRIBUTION_ID: ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }} # Distribution ID from environment variables
+          DEST_DIR: "" # Deploy to the root of the bucket
+          SOURCE_DIR: "build" # Your React build directory
+          INVALIDATION_PATHS: "/*" # Invalidate all paths in the distribution
+          AWS_REGION: us-east-1
+      - name: ✅ Deployment Complete
+        run: echo "Successfully deployed to the ${{ github.event.release.prerelease && 'PILOT' || 'PRODUCTION' }} environment!"
