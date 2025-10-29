@@ -48,15 +48,17 @@ export const getProducts = async (
 };
 
 export const getUserInfo = async (token: string): Promise<any> => {
-  return getData(USER_INFO_ENDPOINT, token).catch((err) =>
-    console.log("error fetching user info ", err),
-  );
+  return getData(USER_INFO_ENDPOINT, token).catch((err) => {
+    console.log("error fetching user info ", err);
+    return err?.response?.data;
+  });
 };
 
 export const guardarPedido = async (token: string, pedido: CrearPedido) => {
-  return postData(token, PEDIDOS_ENDPOINT, pedido).catch((err) =>
-    console.log("error creando pedido: ", err),
-  );
+  return postData(token, PEDIDOS_ENDPOINT, pedido).catch((err) => {
+    console.log("error creando pedido: ", err);
+    return { status: err.status, pedido: err.response.data.pedido };
+  });
 };
 
 const getData = async (

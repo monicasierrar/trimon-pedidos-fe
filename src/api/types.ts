@@ -25,7 +25,8 @@ export interface Producto {
 }
 
 export interface PedidoProducto extends Producto {
-  cantidad: number;
+  cantidad: string;
+  error?: string;
 }
 
 export interface HistorialPedidos {
@@ -43,11 +44,9 @@ export interface Transaccion {
 }
 
 export interface ProductoPedido {
-  id: string;
-  estado: string;
-  fecha: string;
-  cantidad: number;
+  cantidad: string;
   idProducto: string;
+  error?: string;
 }
 
 export interface CrearPedido {
