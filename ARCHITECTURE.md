@@ -51,3 +51,44 @@ graph TD
     style third_party_service fill:#FFC680,stroke:#333,stroke-width:2px
 
 ```
+
+## Modelo entidad relacion
+
+```mermaid
+erDiagram
+    estado {
+        int id PK
+        varchar estado "Estado_UNIQUE"
+    }
+
+    pedido {
+        int id PK
+        int id_estado FK "pedido_estado_fk"
+        varchar nit
+        varchar email_vendedor
+        int id_vendedor
+        double subtotal
+        double total
+        int formaPagoId
+        json sucursal
+        timestamp created_at
+    }
+
+    detalle_pedido {
+        int id PK
+        int pedido_id FK "detalle_pedido_pedido_FK"
+        varchar id_producto
+        varchar id_unidad
+        int unidad
+    }
+
+    error_pedido {
+        int id PK
+        int id_pedido FK "error_pedido_pedido_FK"
+        text error
+    }
+
+    estado ||--o{ pedido : has
+    pedido ||--o{ detalle_pedido : includes
+    pedido ||--o{ error_pedido : has
+```
