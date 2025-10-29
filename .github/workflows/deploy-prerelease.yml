@@ -2,11 +2,18 @@ name: Deploy Trimon Pedidos FE on Pre-Release
 
 on:
   release:
-    types: [prereleased] # This workflow runs when a new pre-release is published
+    types: [published]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.event.release.prerelease && 'pilot' || 'production' }}
 
     permissions:
       contents: write # Grant write permissions for the GITHUB_TOKEN
@@ -45,17 +52,22 @@ jobs:
           git commit -m "chore(release): Update package.json version to ${{ env.VERSION }} from release tag [skip ci]"
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
 
       - name: Build Trimon Pedidos FE
         run: npm run build
+        env: VITE_ZOHO_CLIENT_ID=${{ vars.VITE_ZOHO_CLIENT_ID }}
+          VITE_API_BASE_URL="https://pedidos-api.trimon.co/webhook"
+          VITE_REDIRECT_URI="https://pedidos-api.trimon.co/webhook/authorize"
+          VITE_USE_AUTH="true"
 
-      - name: Deploy to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@v4
+      - name: 🔑 Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           # Use OIDC for secure, password-less authentication with AWS
           role-to-assume: ${{ secrets.AWS_DEPLOYMENT_IAM_ROLE_ARN }}
           aws-region: us-east-1 # Use your AWS region
+
       - name: 🚀 Deploy to S3 and Invalidate CloudFront
         uses: andrewdex/s3-deploy-action@v1 # A popular and effective action
         with:
@@ -65,5 +77,6 @@ jobs:
           SOURCE_DIR: "build" # Your React build directory
           INVALIDATION_PATHS: "/*" # Invalidate all paths in the distribution
           AWS_REGION: us-east-1
+      
       - name: ✅ Deployment Complete
         run: echo "Successfully deployed to the ${{ github.event.release.prerelease && 'PILOT' || 'PRODUCTION' }} environment!"
