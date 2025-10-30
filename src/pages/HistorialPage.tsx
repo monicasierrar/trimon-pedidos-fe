@@ -22,6 +22,7 @@ import "dayjs/locale/es";
 import SearchIcon from "@mui/icons-material/Search";
 import { getHistorialPedidos } from "../api/apiClient";
 import type { HistorialPedidos } from "../api/types";
+import { useNavigate } from "react-router-dom";
 
 const HistorialPage = () => {
   const [fechaInicio, setFechaInicio] = useState<Dayjs | null>(null);
@@ -30,7 +31,7 @@ const HistorialPage = () => {
     [],
   );
   const [animarChips, setAnimarChips] = useState(false);
-
+  const navigate = useNavigate();
   // Validación de fechas
   const fechasValidas =
     !!fechaInicio &&
@@ -115,6 +116,9 @@ const HistorialPage = () => {
       setTimeout(() => setAnimarChips(true), 50);
     } catch (error) {
       console.error(`Error buscando pedidos: ${error}`);
+      if (error.status === 401) {
+        navigate("/login");
+      }
       setPedidosFiltrados([]);
     }
   };

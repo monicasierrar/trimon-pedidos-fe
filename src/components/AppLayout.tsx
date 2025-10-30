@@ -47,6 +47,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({
           if (!info || !Object.keys(info).length) {
             navigate("/login?error=" + encodeURI("Usuario no valido"));
           }
+          localStorage.setItem("user_name", info.displayName);
           return info;
         })
         .catch((error) => {
@@ -70,8 +71,8 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({
     localStorage.removeItem("session_token");
     localStorage.removeItem("user_name");
     localStorage.removeItem("user_avatar");
-    handleClose();
-    navigate("/"); // Redirigir a la página de inicio
+
+    navigate("/login"); // Redirigir a la página de inicio
   };
 
   return (

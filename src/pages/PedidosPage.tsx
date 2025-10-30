@@ -40,6 +40,7 @@ import {
   ProductoPedido,
 } from "../api/types";
 import { getClients, getProducts, guardarPedido } from "../api/apiClient";
+import { useNavigate } from "react-router-dom";
 
 const PedidosPage: React.FC = () => {
   // Estados principales
@@ -56,6 +57,8 @@ const PedidosPage: React.FC = () => {
   const [busquedaProducto, setBusquedaProducto] = useState("");
   const [buscandoProductos, setBuscandoProductos] = useState(false);
   const [mostrarListaClientes, setMostrarListaClientes] = useState(false);
+  const [productoConError, setProductoConError] = useState({});
+  const navigate = useNavigate();
 
   // Notificaciones
   const [notificacion, setNotificacion] = useState({
@@ -121,6 +124,9 @@ const PedidosPage: React.FC = () => {
         });
       }
     } catch (error) {
+      if (error.status === 401) {
+        navigate("/login");
+      }
       console.error(`Error consultando clientes ${error}`);
       setNotificacion({
         open: true,
@@ -299,6 +305,7 @@ const PedidosPage: React.FC = () => {
 
     try {
       const token = localStorage.getItem("session_token") || "";
+      setProductoConError({});
       const response = await guardarPedido(token, pedido);
       if (response && response.pedido?.id) {
         resetToInitial();
@@ -308,14 +315,22 @@ const PedidosPage: React.FC = () => {
           severity: "success",
         });
       } else if (response.status === 422) {
+        setProductoConError(
+          response.pedido.productos
+            .filter((prod: ProductoPedido) => prod.error)
+            .reduce((acc: any, item: ProductoPedido) => {
+              const newAcc = { ...acc };
+              newAcc[item.idProducto] = item.error;
+              return newAcc;
+            }, {}),
+        );
         setNotificacion({
           open: true,
-          message: `Error enviando pedido: ${response.pedido.productos
-            .filter((prod: ProductoPedido) => prod.error)
-            .map((prod: ProductoPedido) => `${prod.error} ${prod.idProducto}`)
-            .join(",")}`,
+          message: `Error enviando pedido: producto con inventario no valido`,
           severity: "error",
         });
+      } else if (result.status === 401) {
+        navigate("/login");
       } else {
         setNotificacion({
           open: true,
@@ -528,8 +543,14 @@ const PedidosPage: React.FC = () => {
                     const ivaProd = valorTotal
                       ? valorTotal * (p.porcentajeImpuesto / 100)
                       : 0;
+                    const borderColor = productoConError[`${p.codigo}`]
+                      ? "red"
+                      : "";
                     return (
-                      <TableRow key={p.id}>
+                      <TableRow
+                        key={p.id}
+                        sx={{ backgroundColor: borderColor }}
+                      >
                         <TableCell>
                           {p.codigo} - {p.nombre}
                         </TableCell>
