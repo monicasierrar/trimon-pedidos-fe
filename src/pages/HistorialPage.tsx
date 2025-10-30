@@ -114,7 +114,7 @@ const HistorialPage = () => {
 
       setAnimarChips(false);
       setTimeout(() => setAnimarChips(true), 50);
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Error buscando pedidos: ${error}`);
       if (error.status === 401) {
         navigate("/login");

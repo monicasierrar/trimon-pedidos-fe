@@ -57,7 +57,7 @@ const PedidosPage: React.FC = () => {
   const [busquedaProducto, setBusquedaProducto] = useState("");
   const [buscandoProductos, setBuscandoProductos] = useState(false);
   const [mostrarListaClientes, setMostrarListaClientes] = useState(false);
-  const [productoConError, setProductoConError] = useState({});
+  const [productoConError, setProductoConError] = useState(new Map());
   const navigate = useNavigate();
 
   // Notificaciones
@@ -123,7 +123,7 @@ const PedidosPage: React.FC = () => {
           severity: "info",
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       if (error.status === 401) {
         navigate("/login");
       }
@@ -305,7 +305,7 @@ const PedidosPage: React.FC = () => {
 
     try {
       const token = localStorage.getItem("session_token") || "";
-      setProductoConError({});
+      setProductoConError(new Map());
       const response = await guardarPedido(token, pedido);
       if (response && response.pedido?.id) {
         resetToInitial();
@@ -315,21 +315,19 @@ const PedidosPage: React.FC = () => {
           severity: "success",
         });
       } else if (response.status === 422) {
-        setProductoConError(
-          response.pedido.productos
-            .filter((prod: ProductoPedido) => prod.error)
-            .reduce((acc: any, item: ProductoPedido) => {
-              const newAcc = { ...acc };
-              newAcc[item.idProducto] = item.error;
-              return newAcc;
-            }, {}),
-        );
+        const map = new Map();
+        response.pedido.productos
+          .filter((prod: ProductoPedido) => prod.error)
+          .forEach((prod: ProductoPedido) =>
+            map.set(prod.idProducto, prod.error),
+          );
+        setProductoConError(map);
         setNotificacion({
           open: true,
           message: `Error enviando pedido: producto con inventario no valido`,
           severity: "error",
         });
-      } else if (result.status === 401) {
+      } else if (response.status === 401) {
         navigate("/login");
       } else {
         setNotificacion({
@@ -543,7 +541,8 @@ const PedidosPage: React.FC = () => {
                     const ivaProd = valorTotal
                       ? valorTotal * (p.porcentajeImpuesto / 100)
                       : 0;
-                    const borderColor = productoConError[`${p.codigo}`]
+                    const codigoProperty: string = p.codigo;
+                    const borderColor = productoConError.has(codigoProperty)
                       ? "red"
                       : "";
                     return (
