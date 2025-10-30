@@ -71,12 +71,14 @@ jobs:
       - name: 🚀 Deploy to S3 and Invalidate CloudFront
         uses: andrewdex/s3-deploy-action@v1 # A popular and effective action
         with:
-          AWS_S3_BUCKET: ${{ vars.S3_BUCKET_NAME }} # Bucket name from environment variables
+          AWS_S3_BUCKET: ${{ vars.S3_BUCKET_NAME }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }} # Bucket name from environment variables
           CLOUDFRONT_DISTRIBUTION_ID: ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }} # Distribution ID from environment variables
           DEST_DIR: "" # Deploy to the root of the bucket
           SOURCE_DIR: "build" # Your React build directory
           INVALIDATION_PATHS: "/*" # Invalidate all paths in the distribution
           AWS_REGION: us-east-1
-      
+
       - name: ✅ Deployment Complete
         run: echo "Successfully deployed to the ${{ github.event.release.prerelease && 'PILOT' || 'PRODUCTION' }} environment!"
