@@ -41,6 +41,7 @@ export interface Transaccion {
   id: string; // Corresponde al número del pedido
   fecha: string; // Formato "YYYY-MM-DD"
   estado: "Procesado" | "Error" | "Pendiente";
+  mensaje?: string;
 }
 
 export interface ProductoPedido {

@@ -28,7 +28,7 @@ export const getClients = async (
     .then((result) => result.clientes)
     .catch((err) => {
       console.log("❌ Error al obtener clientes:", err);
-      return [];
+      throw err;
     });
 };
 
@@ -119,7 +119,7 @@ export const getHistorialPedidos = async (
     return response as HistorialPedidos[];
   } catch (error) {
     console.error("Error fetching historial pedidos", error);
-    return [];
+    throw error;
   }
 };
 
@@ -137,6 +137,6 @@ export const getTransacciones = async (
     return response as Transaccion[];
   } catch (error) {
     console.error("Error fetching historial pedidos", error);
-    return [];
+    throw error;
   }
 };

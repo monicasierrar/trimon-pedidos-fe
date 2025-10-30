@@ -17,6 +17,7 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { Dayjs } from "dayjs";
 import { Transaccion } from "../api/types";
 import { getTransacciones } from "../api/apiClient";
+import { useNavigate } from "react-router-dom";
 
 const LogTransaccionesPage = () => {
   const [fechaInicio, setFechaInicio] = useState<Dayjs | null>(null);
@@ -24,6 +25,7 @@ const LogTransaccionesPage = () => {
   const [transaccionesFiltradas, setTransaccionesFiltradas] = useState<
     Transaccion[]
   >([]);
+  const navigate = useNavigate();
 
   const handleBuscar = () => {
     if (fechaInicio && fechaFin) {
@@ -32,7 +34,13 @@ const LogTransaccionesPage = () => {
         localStorage.getItem("session_token") || "",
         `${fechaInicio.format("YYYY-MM-DD")}`,
         `${fechaFin.format("YYYY-MM-DD")}`,
-      ).then((pedidos) => setTransaccionesFiltradas(pedidos));
+      )
+        .then((pedidos) => setTransaccionesFiltradas(pedidos))
+        .catch((error) => {
+          if (error.status === 401) {
+            navigate("/login");
+          }
+        });
     }
   };
 
@@ -99,6 +107,9 @@ const LogTransaccionesPage = () => {
                     <TableCell>{transaccion.id}</TableCell>
                     <TableCell align="center">
                       {getStatusChip(transaccion.estado)}
+                      {transaccion.mensaje && (
+                        <span>{transaccion.mensaje}</span>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
