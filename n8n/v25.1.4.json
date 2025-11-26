@@ -1,0 +1,3299 @@
+{
+  "name": "v25.1.4",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "=https://ws.dsnube.co/api/v1/consultasql?",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "consulta",
+              "value": "={{ $json.consulta }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        384,
+        2224
+      ],
+      "id": "c4f85434-4b81-4d69-91be-ce53290b7b53",
+      "name": "GET Clients",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "iZmm7J8xuJY9SSCi",
+          "name": "ERP"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        320,
+        3216
+      ],
+      "id": "82ba8283-b6e5-49b9-8b06-fbaaff519419",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "url": "=https://ws.dsnube.co/api/v1/consultasql?consulta={{ encodeURIComponent($json.consulta) }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -208,
+        3088
+      ],
+      "id": "333b7d5b-3e5a-4ff2-868f-d7d071472318",
+      "name": "GET Products",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "iZmm7J8xuJY9SSCi",
+          "name": "ERP"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nconst productos = $input.first().json.result.map(producto => ({\n  nombre: producto.Producto,\n  codigo: producto['Código'],\n  modelo: producto.modelo,\n  familia: producto.familia,\n  grupo: producto.grupo,\n  stock: producto.Disponible,\n  precio: producto.Precio,\n  codigoImpuesto: producto.codimp,\n  porcentajeImpuesto: producto.porcentaje,\n  idUnidad: producto.idunidad,\n  marca: producto.marca\n}))\n\nreturn { productos };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        3088
+      ],
+      "id": "3e872aee-842a-4efb-a787-5203497a66fc",
+      "name": "Mapear productos"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "pedidos",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "https://pedidos.trimon.co,https://go-pedidos.trimon.co,http://localhost:5173"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1808,
+        4064
+      ],
+      "id": "a6883ff5-bee4-4a30-9e9f-bae4598c5ae1",
+      "name": "Crear pedidos",
+      "webhookId": "19999818-0dc3-427d-a445-46ff31dd0f4d"
+    },
+    {
+      "parameters": {
+        "path": "productos",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "https://pedidos.trimon.co,https://go-pedidos.trimon.co,http://localhost:5173"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1616,
+        3536
+      ],
+      "id": "0c9f0688-0e0d-4e92-ab28-9014267a1dad",
+      "name": "Buscar productos",
+      "webhookId": "5601307a-55d7-434c-aea4-277f219b00df"
+    },
+    {
+      "parameters": {
+        "path": "clientes",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "https://pedidos.trimon.co,https://go-pedidos.trimon.co,http://localhost:5173"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1392,
+        2768
+      ],
+      "id": "354e51f3-9572-4122-9fb3-ea711df734d5",
+      "name": "Buscar clientes",
+      "webhookId": "b26350c7-d273-4727-a890-3e3629f76c27"
+    },
+    {
+      "parameters": {
+        "jsCode": "const clientes = $input.first().json.result.map(cliente => ({\n  nit: cliente.nit,\n  razonSocial:cliente.razonsocial,\n  sucursal: cliente.sucursal,\n  telefono: cliente.telefono1,\n  departamento: cliente.departamento,\n  direccion: cliente.direccion1\n}))\n\nreturn {\n  clientes\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        752,
+        2192
+      ],
+      "id": "9315171b-b452-4722-b8bd-5923bf723dfd",
+      "name": "Mapear clientes"
+    },
+    {
+      "parameters": {
+        "httpMethod": "=OPTIONS",
+        "path": "productos",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "https://pedidos.trimon.co,https://go-pedidos.trimon.co,http://localhost:5173"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1696,
+        3392
+      ],
+      "id": "ff4e5f45-b1f4-4348-8fd2-bf1f38f7d971",
+      "name": "Buscar productos options",
+      "webhookId": "23d6619f-ceac-4be4-b1d3-15bcfc8c8f07"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        992,
+        2416
+      ],
+      "id": "127fab98-50c7-4eb8-8213-ed0c5d31ef0a",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "httpMethod": "=OPTIONS",
+        "path": "pedidos",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "https://pedidos.trimon.co,https://go-pedidos.trimon.co,http://localhost:5173"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1776,
+        4256
+      ],
+      "id": "35afe3e8-9bb2-4f96-ab37-08047a57563d",
+      "name": "Crear pedidos1",
+      "webhookId": "f24a1e47-1696-45d2-82f6-7f229be99703"
+    },
+    {
+      "parameters": {
+        "table": {
+          "__rl": true,
+          "value": "pedido",
+          "mode": "list",
+          "cachedResultName": "pedido"
+        },
+        "dataMode": "defineBelow",
+        "valuesToSend": {
+          "values": [
+            {
+              "column": "id_estado",
+              "value": "=1"
+            },
+            {
+              "column": "nit",
+              "value": "={{ $json.sucursal.nit }}"
+            },
+            {
+              "column": "formaPagoId",
+              "value": "=1"
+            },
+            {
+              "column": "sucursal",
+              "value": "={{ JSON.stringify($json.sucursal) }}"
+            },
+            {
+              "column": "email_vendedor",
+              "value": "={{ $json.vendedor.email }}"
+            },
+            {
+              "column": "id_vendedor",
+              "value": "={{ $json.vendedor.idVendedor }}"
+            },
+            {
+              "column": "comentario",
+              "value": "={{ $json.pedido.comentarios }}"
+            }
+          ]
+        },
+        "options": {
+          "detailedOutput": true
+        }
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [
+        1984,
+        3968
+      ],
+      "id": "b1c935ea-c458-41b1-ab30-0c29b73a9bc0",
+      "name": "Insertar pedido en la tabla",
+      "credentials": {
+        "mySql": {
+          "id": "G0qkj4zstxDVRtx2",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const totalPedido =  $('Pedido completo').first().json.pedido.items.reduce((acc, item) => {\n  return {\n    total: acc.total + item.item.valorBruto,\n    iva: acc.iva + item.item.iva,\n    subtotal: acc.subtotal + item.item.subtotal,\n    baseCalculo: item.item.neto,\n  }\n}, { total: 0, iva: 0, subtotal: 0, baseCalculo: 0 })\n\n\n\nlet pedido = {\n  \"encabezado\": {\n    \"comentarios\": $input.first().json.pedido.comentarios,\n      \"fecha\": new Date().toISOString().split('T')[0],\n      \"idsuc\": $input.first().json.sucursal.sucursal,\n      \"idvendedor\": $input.first().json.vendedor.idVendedor,\n      \"numero\": $('Insertar pedido en la tabla').first().json.data.insertId,\n      \"totalDet\": $input.first().json.pedido.items.length,\n      \"nit\": $input.first().json.pedido.nit,\n      iva: totalPedido.iva,\n      subtotal: totalPedido.subtotal,\n      \"total\": totalPedido.total,\n      \"usuario\": \"VEND\",\n      \"prefijo\": \"PEV\",\n     \"sucursal\": $input.first().json.sucursal.sucursal\n  },\n  detalle: $input.first().json.pedido.items.map((detail, idx) => ({\n  \"cantidad\": detail.item.cantidad,\n        \"codimp\": \"IVA01\",\n        \"idproducto\": detail.item.idProducto,\n        \"idunidad\": detail.info.idunidad,\n        \"iva\": detail.item.iva,\n        \"neto\": detail.item.neto,\n        \"porciva\": detail.item.porciva,\n        \"pos\": idx + 1,\n        \"precio\": detail.item.precio,\n        \"subtotal\": detail.item.subtotal,\n        \"unidades\": detail.item.cantidad,\n        \"valorbruto\": detail.item.valorBruto,\n        \"factor\": 1,\n        \"idbodega\": detail.info.idbodega,\n        \"operacion\": \"SA\",\n        porcdcto: 0,\n        vdescuento:0\n  })),\n  impuesto: [\n    {\n      base_calculo: totalPedido.subtotal,\n      codimp: \"IVA01\",\n      liquida: \"S\",\n      valor: totalPedido.iva\n    }\n  ],\n  pago: [\n    {\n      idformapago: 1,\n      valor: totalPedido.total\n    }\n  ],\n  sucursal: {\n    idsuc: $input.first().json.sucursal.sucursal,\n    nit: $input.first().json.pedido.nit\n  }\n  \n}\nreturn {\n  codigo: 200,\n  erpPayload: {\n    documento: pedido\n  }\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3696,
+        3152
+      ],
+      "id": "7981de55-55cb-4f3c-8934-cf6cf834f6c0",
+      "name": "Constuir el payload del pedido para ERP"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ca06ff44-1a88-4e5c-9d71-ca9eb4cb0113",
+              "leftValue": "={{ $json.result }}",
+              "rightValue": "Exito",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        4480,
+        3328
+      ],
+      "id": "14f492fc-805e-4f2b-a8c0-b866b7aa80a9",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "table": {
+          "__rl": true,
+          "value": "pedido",
+          "mode": "list",
+          "cachedResultName": "pedido"
+        },
+        "dataMode": "defineBelow",
+        "columnToMatchOn": "id",
+        "valueToMatchOn": "={{ $('Insertar pedido en la tabla').first().json.data.insertId }}",
+        "valuesToSend": {
+          "values": [
+            {
+              "column": "id_estado",
+              "value": "3"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [
+        5488,
+        3104
+      ],
+      "id": "0a0e80ee-4902-43f2-a25e-eb8809decaf9",
+      "name": "Actualizar pedido como guardado",
+      "credentials": {
+        "mySql": {
+          "id": "G0qkj4zstxDVRtx2",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        5760,
+        3968
+      ],
+      "id": "fd0b3d47-0db2-4d2e-8fc5-c56af9f61dba",
+      "name": "Respuesta error pedido"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $('Pedido completo').item.json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        6896,
+        3312
+      ],
+      "id": "3eb4b8c3-2b7f-461b-8646-816005dc5cf4",
+      "name": "Respuesta ok pedido"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nlet items =$('Componer request').first().json.pedido.productos.map( det => ({\n  ...det,\n  idPedido: $input.first().json.data.insertId,\n}))\nreturn items;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2352,
+        3936
+      ],
+      "id": "a7721dd4-ebf1-4edc-9280-7ef5ef607969",
+      "name": "Mapear detalle"
+    },
+    {
+      "parameters": {
+        "jsCode": "let pedido = $input.first().json.body\n\nlet consulta = `select nit, razonsocial, idsuc sucursal, idformapago, telefono1, direccion1, departamento, ciudad  from matercerosuc WHERE nit = '` + pedido.nit + \"' and idsuc = \" + pedido.idsuc  \nreturn  { consulta, pedido }\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1104,
+        4304
+      ],
+      "id": "093b0481-0197-4b5a-84f1-5dfc8ed78f79",
+      "name": "Mapear pedido"
+    },
+    {
+      "parameters": {
+        "jsCode": "const consulta = \"select idvendedor from mavendedores where email ='\" + $input.first().json.email + \"'\"\n\nreturn {consulta, vendedor: $input.first().json };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -176,
+        3856
+      ],
+      "id": "805114b2-cdcc-43af-a936-1b03e5c3285a",
+      "name": "QueryVendedor"
+    },
+    {
+      "parameters": {
+        "url": "=https://ws.dsnube.co/api/v1/consultasql?consulta={{ $json.consulta }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        80,
+        4048
+      ],
+      "id": "f508b905-eb14-4063-b04c-67248e13ee62",
+      "name": "Get vendedor id",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "iZmm7J8xuJY9SSCi",
+          "name": "ERP"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "\nreturn { idVendedor: $input.first().json.result[0].idvendedor };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        368,
+        4112
+      ],
+      "id": "c13d0a75-c01f-4b26-b9cf-fa0f91cb6c3a",
+      "name": "Mapear id vendedor"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        640,
+        3808
+      ],
+      "id": "1575901c-a9af-4cff-b376-c393c62a3fe9",
+      "name": "Componer vendedor info"
+    },
+    {
+      "parameters": {
+        "options": {
+          "responseCode": 401
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1824,
+        3184
+      ],
+      "id": "a92a1cc9-5166-4ff9-8ebf-1e3153863a24",
+      "name": "No Authorizado"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "lbbPigwzL1zoCCVG",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -1280,
+        3344
+      ],
+      "id": "5830b32e-9ca1-473b-bd94-86a35b15b6ce",
+      "name": "Call 'GetUserInfo'1",
+      "alwaysOutputData": false,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "let clienteNit = $('Buscar productos').first().json.query.clientenit \nlet sucursalId = $('Buscar productos').first().json.query.sucursalId\nconst search = $('Buscar productos').first().json.query.search\nlet consulta = `SELECT SP.idproducto AS \"Código\", mp.nombreproducto AS \"Producto\", Familia, Grupo, Marca, Modelo, SP.disponible AS \"Disponible\", SP.idunidad AS \"Unidad\", CASE ( SELECT listaprecios FROM matercerosuc WHERE nit = '900339960' AND idsuc = '1' LIMIT 1 ) WHEN 1 THEN mp.lista1 WHEN 2 THEN mp.lista2 WHEN 3 THEN mp.lista3 WHEN 4 THEN mp.lista4 WHEN 5 THEN mp.lista5 WHEN 6 THEN mp.lista6 ELSE NULL END AS \"Precio\", imp.porcentaje, imp.codimp FROM SPSALDOSINVENTARIO (CURRENT_DATE,'N','','','S','JCORTES') SP INNER JOIN maproductos mp ON SP.idproducto = mp.idproducto INNER JOIN vpareto_producto ON SP.idproducto = vpareto_producto.idproducto INNER JOIN maperfilproducto pf ON mp.idperfil = pf.idperfil INNER JOIN maimpuestos imp ON imp.codimp = pf.ivaventa WHERE SP.SALDO > 0 AND mp.activo = 'S'AND SP.idbodega = '1'`\nif(search) {\n  consulta += `AND SP.idproducto like '${search.toUpperCase()}%'` \n}\n\nconsulta += ` ORDER BY 1, 2`\n\nreturn  ({ clienteNit, sucursalId, consulta, search }) "
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -528,
+        3056
+      ],
+      "id": "94aa67db-6086-4670-bf6a-bce86c2f595f",
+      "name": "Extraer cliente y sucursal"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a6cc6f6f-fdef-4d1e-9279-8668dcd46ebc",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -832,
+        2832
+      ],
+      "id": "081a4728-c3d2-4688-a526-e7c5ec2877fc",
+      "name": "Hay error1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a6cc6f6f-fdef-4d1e-9279-8668dcd46ebc",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -816,
+        3712
+      ],
+      "id": "dc0708fa-123c-4991-9faf-649e7eeb968a",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "lbbPigwzL1zoCCVG",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -1232,
+        3728
+      ],
+      "id": "3b2d4672-516e-4454-946c-a343935035a7",
+      "name": "Call 'GetUserInfo'2",
+      "alwaysOutputData": false,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "httpMethod": "=OPTIONS",
+        "path": "clientes",
+        "options": {
+          "allowedOrigins": "https://pedidos.trimon.co,https://go-pedidos.trimon.co,http://localhost:5173"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1392,
+        2576
+      ],
+      "id": "93cc3160-ea00-47d3-a13a-849d838b4690",
+      "name": "Buscar clientes options",
+      "webhookId": "6d571b5d-84d6-40de-b0e7-67c0f5c65fa8"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1440,
+        4256
+      ],
+      "id": "85a22bdd-383e-4070-b774-813904cf7a2e",
+      "name": "Componer request"
+    },
+    {
+      "parameters": {
+        "url": "=https://ws.dsnube.co/api/v1/consultasql?consulta={{ $json.consulta }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3392,
+        4160
+      ],
+      "id": "dca63da3-ff0f-4430-bba5-34c0c68ff290",
+      "name": "GET Products1",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "iZmm7J8xuJY9SSCi",
+          "name": "ERP"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "\nreturn {\n  vendedor: {\n    ...$input.first().json.vendedor,\n    idVendedor: $input.first().json.idVendedor,\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1024,
+        3856
+      ],
+      "id": "cf5c83c3-7a66-4189-ba4a-f7831b62ebb5",
+      "name": "Mapear vendedor"
+    },
+    {
+      "parameters": {
+        "url": "=https://ws.dsnube.co/api/v1/consultasql?consulta={{ $json.consulta }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -592,
+        4048
+      ],
+      "id": "4a297b36-738e-4248-8483-779e8ed3441d",
+      "name": "Get Sucursal info",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "iZmm7J8xuJY9SSCi",
+          "name": "ERP"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "let pedido = $('Mapear pedido').first().json.pedido\nlet sucursal = $input.first().json.result[0]\n\nreturn { pedido, sucursal };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        384,
+        4656
+      ],
+      "id": "79b75c92-66d6-429c-9a30-a5f9e984dcf7",
+      "name": "Componer pedido y sucursal"
+    },
+    {
+      "parameters": {
+        "jsCode": "const pedidoId = $('Insertar pedido en la tabla').first().json.data.insertId\nconst items = $input.all().map(det => det.json)\nconst { vendedor, pedido, sucursal } = $('Componer request').first().json\nconst errorInventario = items.filter(item => item.item.cantidad > item.item.disponible)\nreturn {\n  vendedor,\n  pedido: {\n    ...pedido,\n    items,\n    id: pedidoId,\n    errorInventario\n  },\n  sucursal,\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3024,
+        3360
+      ],
+      "id": "c74503a1-b102-4b81-81e2-b333a4289e97",
+      "name": "Pedido completo"
+    },
+    {
+      "parameters": {
+        "jsCode": "const { cantidad, idProducto, idPedido } = $input.first().json\n\nlet consulta = ` SELECT SP.idproducto AS \"Código\", mp.nombreproducto AS \"Producto\", Familia, Grupo, Marca, Modelo, SP.disponible AS \"Disponible\", SP.idunidad, SP.idbodega, CASE ( SELECT listaprecios FROM matercerosuc WHERE nit = '` + $('Componer pedido y sucursal').first().json.sucursal.nit +`' AND idsuc = `+ $('Componer pedido y sucursal').first().json.sucursal.sucursal +` LIMIT 1 ) WHEN 1 THEN mp.lista1 WHEN 2 THEN mp.lista2 WHEN 3 THEN mp.lista3 WHEN 4 THEN mp.lista4 WHEN 5 THEN mp.lista5 WHEN 6 THEN mp.lista6 ELSE NULL END AS \"Precio\", imp.porcentaje, imp.codimp FROM SPSALDOSINVENTARIO (CURRENT_DATE,'N','','','S','JCORTES') SP INNER JOIN maproductos mp ON SP.idproducto = mp.idproducto INNER JOIN vpareto_producto ON SP.idproducto = vpareto_producto.idproducto INNER JOIN maperfilproducto pf ON mp.idperfil = pf.idperfil INNER JOIN maimpuestos imp ON imp.codimp = pf.ivaventa WHERE SP.SALDO > 0 AND mp.activo = 'S'AND SP.idbodega = '1' AND SP.idproducto = '` + idProducto +`' ORDER BY 1, 2 ` \n\nreturn {consulta, cantidad, idProducto, idPedido};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3120,
+        3856
+      ],
+      "id": "3471129d-0974-4b20-9c36-ddffacfabb8d",
+      "name": "item de pedido"
+    },
+    {
+      "parameters": {
+        "jsCode": "let detailInfo = $input.first().json.result[0]\nlet item = $('Get product info').first().json\nitem.porcentajeImpuesto = detailInfo.porcentaje\nitem.precio = detailInfo.Precio\nitem.subtotal = item.precio * item.cantidad\nitem.neto = item.subtotal\nitem.iva = item.neto * item.porcentajeImpuesto / 100\nitem.codigoImpuesto = detailInfo.codimp\nitem.idPedido = $('Insertar pedido en la tabla').first().json.data.insertId\nitem.disponible = detailInfo.Disponible\nitem.valorBruto = item.neto + item.iva\n\nreturn { item, detailInfo };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3632,
+        3856
+      ],
+      "id": "8f7b4d57-f0c2-456a-8a14-12b8e8696c3a",
+      "name": "item y detalle info"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        2800,
+        3760
+      ],
+      "id": "cded059e-1ad6-44f7-9fa5-2da0fe424e48",
+      "name": "Get product info"
+    },
+    {
+      "parameters": {
+        "table": {
+          "__rl": true,
+          "value": "detalle_pedido",
+          "mode": "list",
+          "cachedResultName": "detalle_pedido"
+        },
+        "dataMode": "defineBelow",
+        "valuesToSend": {
+          "values": [
+            {
+              "column": "pedido_id",
+              "value": "={{ $input.first().json.item.idPedido }}"
+            },
+            {
+              "column": "id_producto",
+              "value": "={{ $input.first().json.item.idProducto }}"
+            },
+            {
+              "column": "id_unidad",
+              "value": "={{ $input.first().json.detailInfo.idunidad }}"
+            },
+            {
+              "column": "unidad",
+              "value": "={{ $input.first().json.item.cantidad }}"
+            }
+          ]
+        },
+        "options": {
+          "detailedOutput": true
+        }
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [
+        3808,
+        4112
+      ],
+      "id": "bb2dc519-2cd4-460c-93f0-7e895e98ad1a",
+      "name": "Insertar detalle pedido en la tabla1",
+      "credentials": {
+        "mySql": {
+          "id": "G0qkj4zstxDVRtx2",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const itemId = $input.first().json.data.insertId\nconst item = {...$('item y detalle info').first().json.item, id: itemId}\nconst info = $('item y detalle info').first().json.detailInfo\nreturn { item,info };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4000,
+        4304
+      ],
+      "id": "1322f0a5-c2de-4b17-a4c4-6a55564ee160",
+      "name": "set detalle id"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a6cc6f6f-fdef-4d1e-9279-8668dcd46ebc",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notExists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -304,
+        2496
+      ],
+      "id": "52502eac-5b24-4e09-a4e5-e6a4e457a1b6",
+      "name": "Sin error"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://ws.dsnube.co/api/v1/pec",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($input.first().json.erpPayload) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4208,
+        3168
+      ],
+      "id": "11ac6fc1-ff70-4c56-a964-a6b4c84c18c7",
+      "name": "POST pedido",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "iZmm7J8xuJY9SSCi",
+          "name": "ERP"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://ws.dsnube.co/api/v1/consultasql?consulta={{ $json.consulta }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3680,
+        6016
+      ],
+      "id": "fd3bf581-173e-4520-b5e2-3dd32e65f4bd",
+      "name": "HTTP Request1",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "iZmm7J8xuJY9SSCi",
+          "name": "ERP"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        4112,
+        5440
+      ],
+      "id": "670655c6-1ca6-42e6-a2f6-a5b8f88fe8b4",
+      "name": "Respond to Webhook5"
+    },
+    {
+      "parameters": {
+        "jsCode": "let { fechaInicio, fechaFin } = $('Historial-pedidos').first().json.query\nconst idvendedor = $input.first().json.idVendedor\nconst consulta = \"select tr.fecha, tr.nit, tr.numero, tr.estado, tr.total, ma.razonsocial from trotrosdocinv tr inner join materceros ma on tr.nit = ma.nit where prefijo = 'PEV' and idvendedor = '\"+idvendedor+\"' and fecha BETWEEN '\"+fechaInicio+\"' and '\"+fechaFin+\"' order by 1 desc, nit, numero\"\nreturn { consulta };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3344,
+        5904
+      ],
+      "id": "d5305d11-bdc2-41dd-ad1a-4641d0f51b8c",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "lbbPigwzL1zoCCVG",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -944,
+        5040
+      ],
+      "id": "b55fb67f-6146-47e4-b631-e78564d80179",
+      "name": "Call 'GetUserInfo'4",
+      "alwaysOutputData": false,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a6cc6f6f-fdef-4d1e-9279-8668dcd46ebc",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -16,
+        5296
+      ],
+      "id": "6415544f-bff0-45a9-985e-52dc3ab1d673",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "options": {
+          "responseCode": 401
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1632,
+        5168
+      ],
+      "id": "70266157-29f4-4e5f-a762-aaf760e03fdd",
+      "name": "No Authorizado1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const consulta = \"select idvendedor from mavendedores where email ='\" + $input.first().json.email + \"'\"\n\nreturn {consulta};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1248,
+        5904
+      ],
+      "id": "5d148e5c-95a8-4520-9c02-d51b25e8012c",
+      "name": "QueryVendedor1"
+    },
+    {
+      "parameters": {
+        "url": "=https://ws.dsnube.co/api/v1/consultasql?consulta={{ $json.consulta }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2000,
+        6112
+      ],
+      "id": "2167bbf9-218a-4c6e-a81a-d1bfc84e9312",
+      "name": "Get vendedor id1",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "iZmm7J8xuJY9SSCi",
+          "name": "ERP"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "\nreturn {idVendedor: $input.first().json.result[0].idvendedor};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2688,
+        6128
+      ],
+      "id": "55022f53-361f-4b2f-a246-511651b8dd77",
+      "name": "Mapear id vendedor1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        3136,
+        6096
+      ],
+      "id": "fa54661b-80a0-4cb0-b1c8-f528d09bbf8e",
+      "name": "Componer vendedor info1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const pedidos = $input.first().json.result.map(pedido => {\n  const nuevoPedido = {\n    nit: pedido.nit,\n    id: pedido.numero,\n    estado: pedido.estado,\n    total: pedido.total,\n    cliente: pedido.razonsocial,\n    fecha: pedido.fecha.substring(0, 10),\n  }\n  return nuevoPedido\n})\nreturn pedidos"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3824,
+        5760
+      ],
+      "id": "982a23e7-0bea-492b-90c6-2788ce599a2f",
+      "name": "Code in JavaScript3"
+    },
+    {
+      "parameters": {
+        "path": "pedidos",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "https://pedidos.trimon.co,https://go-pedidos.trimon.co,http://localhost:5173"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1760,
+        4832
+      ],
+      "id": "2a2f8aa7-8247-4edd-9c7e-d95b71afa40b",
+      "name": "Historial-pedidos",
+      "webhookId": "097dc9c5-82e8-4828-990b-ddecef370c8e"
+    },
+    {
+      "parameters": {
+        "mailagent": "74347d727301a3de",
+        "fromaddress": {
+          "address": "info@trimon.co"
+        },
+        "toaddress": "santiagopenasierra@gmail.com,gabrielsimpsons@gmail.com",
+        "subject": "=Vendedor: {{$('Mapear vendedor').first().json.vendedor.displayName }} Orden de compra:  {{ $('Pedido completo').item.json.pedido.id }}",
+        "htmlbody": "={{ $json.html }}",
+        "cc": "monicasierrar@gmail.com",
+        "attachment": {}
+      },
+      "type": "n8n-nodes-zohozeptomail.zohoZeptomail",
+      "typeVersion": 1,
+      "position": [
+        6176,
+        3584
+      ],
+      "id": "d28e8615-7ece-4666-b256-279a2b7895f9",
+      "name": "Send Mail",
+      "credentials": {
+        "zohoZeptomailOAuth2Api": {
+          "id": "8qWizyQeAJIlgGEh",
+          "name": "Zoho ZeptoMail account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        6480,
+        3344
+      ],
+      "id": "09d656e8-a010-4ed5-b7e4-006565befe87",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "html": "<!DOCTYPE html>\n<html lang=\"es\">\n<head>\n  <meta charset=\"UTF-8\">\n  <title>Orden de Pedido</title>\n  <style>\n    body {\n      font-family: Arial, sans-serif;\n      margin: 0;\n      padding: 0;\n      background: #f5f5f5;\n    }\n    .container {\n      width: 90%;\n      max-width: 800px;\n      margin: 20px auto;\n      background: #fff;\n      padding: 20px;\n      border: 1px solid #ddd;\n    }\n    .header {\n      margin-bottom: 20px;\n    }\n    .header-table {\n      width: 100%;\n    }\n    .header-table td {\n      vertical-align: top;\n      padding: 5px;\n    }\n    .header img {\n      max-width: 120px;\n    }\n    .header-info {\n      text-align: right;\n      font-size: 14px;\n      line-height: 1.3;\n      color: #444;\n    }\n    .section {\n      margin-bottom: 20px;\n    }\n    .section h2 {\n      font-size: 16px;\n      border-bottom: 1px solid #ddd;\n      padding-bottom: 5px;\n      margin-bottom: 10px;\n      color: #444;\n    }\n    .section p {\n      line-height: 1.4;\n      margin: 2px 0;\n      font-size: 14px;\n    }\n    table {\n      width: 100%;\n      border-collapse: collapse;\n      font-size: 14px;\n    }\n    th, td {\n      border: 1px solid #ddd;\n      padding: 6px;\n      text-align: center;\n    }\n    th {\n      background: #f0f0f0;\n      font-weight: bold;\n    }\n    .totales {\n      margin-top: 20px;\n      width: 100%;\n    }\n    .totales td {\n      padding: 6px;\n    }\n    .totales .label {\n      text-align: right;\n      font-weight: bold;\n      background: #f9f9f9;\n    }\n    .totales .value {\n      text-align: right;\n    }\n    .footer {\n      margin-top: 30px;\n      font-size: 12px;\n      color: #777;\n      text-align: center;\n    }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <!-- Encabezado con logo y datos -->\n    <div class=\"header\">\n      <table class=\"header-table\">\n        <tr>\n          <td>\n            <!-- Logo dummy -->\n            <img src=\"https://pedidos.trimon.co/assets/logo-BkBSmhWf.png\" alt=\"Logo Empresa\">\n          </td>\n          <td class=\"header-info\">\n            <strong>BTRES S.A.S</strong><br>\n            NIT: 900.587.306-2<br>\n            CLL 68 N°87-40<br>\n            BOGOTA DC - BOGOTA<br>\n            PBX: 4370408 / 9260050 CEL: 317 501 26 42<br>\n            www.trimon.co<br>\n            Email: Contabilidad@trimon.co\n          </td>\n        </tr>\n      </table>\n      <hr>\n      <h1 style=\"text-align:center; margin:10px 0;\">Orden de Pedido</h1>\n      <p style=\"text-align:center; margin:2px 0;\"><strong>No. Pedido:</strong>{{ $('Pedido completo').item.json.pedido.id }}</p>\n      <p style=\"text-align:center; margin:2px 0;\"><strong>Fecha:</strong> {{ $now.format('yyyy-MM-dd') }}</p>\n    </div>\n\n    <!-- Cliente -->\n    <div class=\"section\">\n      <h2>Datos del Cliente</h2>\n      <p><strong>Razón Social:</strong>{{ $('Pedido completo').item.json.sucursal.razonsocial }}</p>\n      <p><strong>NIT:</strong> {{ $('Pedido completo').item.json.sucursal.nit }}</p>\n      <p><strong>Sucursal:</strong> {{ $('Pedido completo').item.json.sucursal.sucursal }}</p>\n      <p><strong>Dirección:</strong> {{ $('Pedido completo').item.json.sucursal.direccion1 }}, {{ $('Pedido completo').item.json.sucursal.ciudad }}, {{ $('Pedido completo').item.json.sucursal.departamento }}</p>\n    </div>\n\n    <!-- Productos -->\n    <div class=\"section\">\n      <h2>Detalle de Productos</h2>\n      <table>\n        <thead>\n          <tr>\n            <th>Código</th>\n            <th>Cantidad</th>\n            <th>Unidad</th>\n            <th>Precio Unitario</th>\n            <th>Subtotal</th>\n            <th>IVA</th>\n            <th>Total</th>\n          </tr>\n        </thead>\n        <tbody>\n          {{ $json.itemsHtml }}\n        </tbody>\n      </table>\n    </div>\n\n    <!-- Totales -->\n    <div class=\"section\">\n      <h2>Totales</h2>\n      <table class=\"totales\">\n        <tr>\n          <td class=\"label\">Subtotal:</td>\n          <td class=\"value\">{{ $json.subtotal.toLocaleString('es-CO', {\n    style: 'currency',\n    currency: 'COP',\n    minimumFractionDigits: 0, // Colombian Peso is often displayed without cents\n    maximumFractionDigits: 0\n}) }}</td>\n        </tr>\n        <tr>\n          <td class=\"label\">IVA:</td>\n          <td class=\"value\">{{ $json.iva.toLocaleString('es-CO', {\n    style: 'currency',\n    currency: 'COP',\n    minimumFractionDigits: 0, // Colombian Peso is often displayed without cents\n    maximumFractionDigits: 0\n}) }}</td>\n        </tr>\n        <tr>\n          <td class=\"label\">Total a Pagar:</td>\n          <td class=\"value\"><strong>{{ $json.total.toLocaleString('es-CO', {\n    style: 'currency',\n    currency: 'COP',\n    minimumFractionDigits: 0, // Colombian Peso is often displayed without cents\n    maximumFractionDigits: 0\n}) }}</strong></td>\n        </tr>\n      </table>\n    </div>\n\n    <!-- Comentarios -->\n    <div class=\"section\">\n      <h2>Comentarios</h2>\n      <p>Comentarios pruebas pedido</p>\n    </div>\n\n    <!-- Pie -->\n    <div class=\"footer\">\n      <p>Este documento es generado electrónicamente y no requiere firma.</p>\n    </div>\n  </div>\n</body>\n</html>\n\n"
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        5632,
+        3520
+      ],
+      "id": "35d274b7-3027-476a-84f3-d9e8ced3f9b8",
+      "name": "HTML"
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst code = $input.first().json.query.code\nreturn { code, redirectUrl: \"https://pedidos-api.trimon.co/webhook/authorize\" };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        320
+      ],
+      "id": "41109aa1-c005-4798-b937-c37a04e44491",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "aadb05bb-87cc-4dad-a992-4bcbc819e0ab",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1056,
+        192
+      ],
+      "id": "fd215886-ef97-40b8-8866-d532c06f0703",
+      "name": "error"
+    },
+    {
+      "parameters": {
+        "jsCode": "const accessToken = $input.first().json.access_token;\nconst expiresIn = $input.first().json.expires_in;\n\nreturn { accessToken, expiresIn }"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1408,
+        352
+      ],
+      "id": "883dbe28-1a29-4d32-af22-b375ad8e84a7",
+      "name": "Code1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const error = $input.first().json.error\nreturn { error };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1536,
+        128
+      ],
+      "id": "127c9b9c-5d77-47f5-95e6-b59eea92a3ac",
+      "name": "Code3"
+    },
+    {
+      "parameters": {
+        "path": "authorize",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "https://pedidos.trimon.co,http://localhost:5173"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        48,
+        368
+      ],
+      "id": "cb176cea-f86a-466a-9bda-943942340d9c",
+      "name": "Authorize code",
+      "webhookId": "8341ddec-a4fb-47eb-b000-c0a6f84ca021"
+    },
+    {
+      "parameters": {
+        "httpMethod": "=OPTIONS",
+        "path": "authorize",
+        "responseMode": "lastNode",
+        "options": {
+          "allowedOrigins": "https://pedidos.trimon.co"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        48,
+        208
+      ],
+      "id": "19637da6-a07c-4112-831d-151c934ddb19",
+      "name": "Authorize code options",
+      "webhookId": "2ec96214-9dba-4d40-b232-48c80897a302"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://accounts.zoho.com/oauth/v2/token",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "code",
+              "value": "={{ $json.code }}"
+            },
+            {
+              "name": "grant_type",
+              "value": "authorization_code"
+            },
+            {
+              "name": "client_id",
+              "value": "1000.5U8I460UG3WLLU85J5GLAKUDXLN9WZ"
+            },
+            {
+              "name": "client_secret",
+              "value": "45a9b1dfc9b716ff3912a2be813b9fb18440256f01"
+            },
+            {
+              "name": "redirect_uri",
+              "value": "=https://pedidos-api.trimon.co/webhook/authorize"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        784,
+        320
+      ],
+      "id": "7197e3c2-e586-46bf-b114-a46ad390d258",
+      "name": "Get token"
+    },
+    {
+      "parameters": {
+        "path": "user-info",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "https://pedidos.trimon.co,http://localhost:5173"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        160,
+        752
+      ],
+      "id": "7decd825-6db8-4732-8e97-e4c5f562c1e8",
+      "name": "User info",
+      "webhookId": "783236cc-6349-4ce7-9532-e106ee755aec"
+    },
+    {
+      "parameters": {
+        "jsCode": "const { firstName, email, lastName, displayName } = $input.first().json\nreturn {\n  firstName,\n  email,\n  lastName,\n  displayName\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1360,
+        784
+      ],
+      "id": "21205ccb-fd39-4e08-9b3d-e13265285248",
+      "name": "Code6"
+    },
+    {
+      "parameters": {
+        "httpMethod": "=OPTIONS",
+        "path": "user-info",
+        "responseMode": "lastNode",
+        "options": {
+          "allowedOrigins": "https://pedidos.trimon.co"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        160,
+        880
+      ],
+      "id": "09c7b03f-d057-4278-a176-d44c113589cf",
+      "name": "User info options",
+      "webhookId": "2c97e397-ca1f-431a-9155-be04e4b4c422"
+    },
+    {
+      "parameters": {
+        "respondWith": "redirect",
+        "redirectURL": "=https://pedidos.trimon.co/auth/callback?access_token={{ $json.accessToken }}&expires_in={{ $json.expiresIn }}",
+        "options": {
+          "responseCode": 302
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1616,
+        432
+      ],
+      "id": "c754c4ce-4b8f-4872-88f5-e0bf701d5b91",
+      "name": "Respond to Webhook3"
+    },
+    {
+      "parameters": {
+        "respondWith": "redirect",
+        "redirectURL": "https://pedidos.trimon.co/",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1712,
+        80
+      ],
+      "id": "f1698d71-2fa2-4da0-a5bf-ebff2acaa8cf",
+      "name": "Respond to Webhook4"
+    },
+    {
+      "parameters": {
+        "content": "## Auth0",
+        "height": 1120,
+        "width": 1968
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        0,
+        0
+      ],
+      "typeVersion": 1,
+      "id": "765322ae-ad36-4837-a888-4142ae3394a6",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "lbbPigwzL1zoCCVG",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        448,
+        656
+      ],
+      "id": "7dbb9d65-a55d-42de-a86c-f66fed92600f",
+      "name": "Call 'GetUserInfo'3",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "options": {
+          "responseCode": 401
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1184,
+        480
+      ],
+      "id": "cd198899-b430-4620-b2be-a3c7156d2bc3",
+      "name": "Respond to Webhook2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a6cc6f6f-fdef-4d1e-9279-8668dcd46ebc",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        976,
+        576
+      ],
+      "id": "e1747213-f86c-4dcd-9dbe-f32af54103da",
+      "name": "Hay error2"
+    },
+    {
+      "parameters": {
+        "path": "rest/oauth2-credential/callback",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "https://pedidos.trimon.co"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        48,
+        560
+      ],
+      "id": "3b72881a-71ae-409e-aa24-3a4012be4d8f",
+      "name": "Authorize code1",
+      "webhookId": "8341ddec-a4fb-47eb-b000-c0a6f84ca021"
+    },
+    {
+      "parameters": {
+        "table": {
+          "__rl": true,
+          "value": "pedido",
+          "mode": "list",
+          "cachedResultName": "pedido"
+        },
+        "dataMode": "defineBelow",
+        "valuesToSend": {
+          "values": [
+            {
+              "column": "id_estado",
+              "value": "=1"
+            },
+            {
+              "column": "nit",
+              "value": "={{ $json.sucursal.nit }}"
+            },
+            {
+              "column": "formaPagoId",
+              "value": "=1"
+            },
+            {
+              "column": "sucursal",
+              "value": "={{ JSON.stringify($json.sucursal) }}"
+            },
+            {
+              "column": "email_vendedor",
+              "value": "={{ $json.vendedor.email }}"
+            },
+            {
+              "column": "id_vendedor",
+              "value": "={{ $json.vendedor.idVendedor }}"
+            },
+            {
+              "column": "comentario",
+              "value": "={{ $json.pedido.comentarios }}"
+            }
+          ]
+        },
+        "options": {
+          "detailedOutput": true
+        }
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [
+        992,
+        8624
+      ],
+      "id": "585c9fcb-7e91-4dd9-80a2-958f77671a02",
+      "name": "Insertar pedido en la tabla1",
+      "credentials": {
+        "mySql": {
+          "id": "G0qkj4zstxDVRtx2",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $('Pedido completo').first().json.pedido.items\n\nlet subtotal = 0\nlet iva = 0\nlet total = 0\nlet itemsHtml = ``\nfor(const item of items) {\n  itemsHtml += `\n    <tr>\n      <td>${item.item.idProducto}</td>\n      <td>${item.item.cantidad}</td>\n      <td>${item.info.idunidad}</td>\n      <td>$${item.item.precio.toLocaleString('es-CO', {\n    style: 'currency',\n    currency: 'COP',\n    minimumFractionDigits: 0, // Colombian Peso is often displayed without cents\n    maximumFractionDigits: 0\n}) }</td>\n      <td>$${item.item.subtotal.toLocaleString('es-CO', {\n    style: 'currency',\n    currency: 'COP',\n    minimumFractionDigits: 0, // Colombian Peso is often displayed without cents\n    maximumFractionDigits: 0\n}) }</td>\n      <td>$${item.item.iva.toLocaleString('es-CO', {\n    style: 'currency',\n    currency: 'COP',\n    minimumFractionDigits: 0, // Colombian Peso is often displayed without cents\n    maximumFractionDigits: 0\n}) }</td>\n      <td>$${item.item.valorBruto.toLocaleString('es-CO', {\n    style: 'currency',\n    currency: 'COP',\n    minimumFractionDigits: 0, // Colombian Peso is often displayed without cents\n    maximumFractionDigits: 0\n}) }</td>\n    </tr>\n  `\n  subtotal += item.item.subtotal\n  iva += item.item.iva\n  total += item.item.valorBruto\n  \n}\n\nreturn [{\n  itemsHtml, iva, subtotal, total\n}]"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5296,
+        3472
+      ],
+      "id": "db882148-0267-4bac-8d86-e8ff8fd9f87f",
+      "name": "Preparar items de factura"
+    },
+    {
+      "parameters": {
+        "jsCode": "const search = $('Buscar clientes').first().json.query.search\n\nlet consulta = `select nit,razonsocial,idsuc sucursal,idformapago,telefono1,direccion1,departamento,ciudad from matercerosuc`\nif(search ) {\n consulta += ` where razonsocial like '${search.toUpperCase()}%'` \n}\nconsulta += ` order by razonsocial`\nreturn {\n  consulta,\n  search\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        80,
+        2352
+      ],
+      "id": "377beb56-e9d8-4a2b-b189-d2893971997c",
+      "name": "extraer parametros"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "lbbPigwzL1zoCCVG",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -944,
+        2576
+      ],
+      "id": "84df88c8-9775-4fa4-b316-221d8457c6ec",
+      "name": "Call 'Get user info'",
+      "alwaysOutputData": false,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "httpMethod": "=OPTIONS",
+        "path": "pedidos",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "https://pedidos.trimon.co,https://go-pedidos.trimon.co,http://localhost:5173"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1792,
+        5072
+      ],
+      "id": "d42da6c8-4108-41e7-882f-638c3312712a",
+      "name": "Historial-pedidos1",
+      "webhookId": "097dc9c5-82e8-4828-990b-ddecef370c8e"
+    },
+    {
+      "parameters": {
+        "path": "transacciones",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "https://pedidos.trimon.co,https://go-pedidos.trimon.co,http://localhost:5173"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1776,
+        5520
+      ],
+      "id": "8e81902d-92d0-4820-9f2d-f000c02ab43f",
+      "name": "Webhook",
+      "webhookId": "5b11f17e-e02b-47d5-8066-d29910328807"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "lbbPigwzL1zoCCVG",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -1472,
+        5504
+      ],
+      "id": "47d9a151-1a66-4447-9b4c-45aa8fef81e8",
+      "name": "Call 'Get user info'1"
+    },
+    {
+      "parameters": {
+        "httpMethod": "=OPTIONS",
+        "path": "transacciones",
+        "options": {
+          "allowedOrigins": "https://pedidos.trimon.co,https://go-pedidos.trimon.co,http://localhost:5173"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1744,
+        5760
+      ],
+      "id": "a345b716-01f3-43a2-a8c2-e262307ad79c",
+      "name": "Webhook1",
+      "webhookId": "5b11f17e-e02b-47d5-8066-d29910328807"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"error\": \"fechaInicio o fechaFin no valida\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -448,
+        5376
+      ],
+      "id": "fc395642-68bb-4fd5-bb50-8773ff060e8f",
+      "name": "Respond to Webhook6"
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        80,
+        5632
+      ],
+      "id": "020a565d-2517-42c9-ab22-48b83120ef9e",
+      "name": "Respond to Webhook7",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const vendedorEmail = $input.first().json.email\nconst { fechaInicio, fechaFin } = $('Webhook').first().json.query\n\nreturn {\n  vendedorEmail,\n  fechaInicio,\n  fechaFin,\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1136,
+        5504
+      ],
+      "id": "a4a479eb-ab06-48e3-891a-f940219e9ff8",
+      "name": "Mapear parametros"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a889d027-b69c-4b85-8835-dc9f80ed567f",
+              "leftValue": "={{ $json.fechaInicio }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notExists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "090ca770-25a1-4b3b-99e0-79f6fcbbb650",
+              "leftValue": "={{ $json.fechaFin }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notExists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -832,
+        5488
+      ],
+      "id": "058c90a0-fd1f-4194-addd-fbfea8f10ef9",
+      "name": "Validar parametros"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT e.estado, p.* \nFROM pedidosDB.pedido p\nINNER JOIN pedidosDB.estado e on p.id_estado = e.id\nWHERE p.email_vendedor = '{{ $json.vendedorEmail }}' and p.created_at BETWEEN '{{ $json.fechaInicio }} 00:00:00' AND '{{ $json.fechaFin }} 23:59:59'\nORDER BY p.id DESC",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [
+        -496,
+        5648
+      ],
+      "id": "b91979a0-c049-4290-ad61-dd26563322d5",
+      "name": "Consultar transacciones",
+      "executeOnce": false,
+      "alwaysOutputData": true,
+      "credentials": {
+        "mySql": {
+          "id": "G0qkj4zstxDVRtx2",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "aafcc597-7898-4989-8c0c-a22e13a68fb6",
+              "name": "id",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "7131b90a-3791-4ed9-b66d-c68eecc5f7cc",
+              "name": "estado",
+              "value": "={{ $json.estado }}",
+              "type": "string"
+            },
+            {
+              "id": "2bccc646-0bb0-4835-adb6-639d9f83e35f",
+              "name": "fecha",
+              "value": "={{ $json.created_at.substring(0, 10) }}",
+              "type": "string"
+            },
+            {
+              "id": "7ca45a14-13d1-4f92-9486-f521f7b2ccfa",
+              "name": "cliente",
+              "value": "={{ $json.sucursal.razonsocial }}",
+              "type": "string"
+            },
+            {
+              "id": "ee6db375-e018-4de5-8796-2c85ce052b0d",
+              "name": "total",
+              "value": "={{ $json.total }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -288,
+        5648
+      ],
+      "id": "18e698f0-c683-4e18-bc72-e3e1725e2621",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1568,
+        784
+      ],
+      "id": "7472ccee-a9f3-4c25-9207-ab97db4ea56d",
+      "name": "Respond to Webhook8"
+    },
+    {
+      "parameters": {
+        "table": {
+          "__rl": true,
+          "value": "error_pedido",
+          "mode": "list",
+          "cachedResultName": "error_pedido"
+        },
+        "dataMode": "defineBelow",
+        "valuesToSend": {
+          "values": [
+            {
+              "column": "id_pedido",
+              "value": "={{ $('Insertar pedido en la tabla').first().json.data.insertId }}"
+            },
+            {
+              "column": "error",
+              "value": "=\"Error enviando el pedido al ERP\""
+            }
+          ]
+        },
+        "options": {
+          "detailedOutput": true
+        }
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [
+        4976,
+        3680
+      ],
+      "id": "4ddbc4bb-ad06-4064-a0c8-2bc6c29481fd",
+      "name": "Error pedido",
+      "credentials": {
+        "mySql": {
+          "id": "G0qkj4zstxDVRtx2",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6339551f-64a7-44aa-8345-08568d8d7a7e",
+              "name": "consulta",
+              "value": "=SELECT SP.disponible  FROM SPSALDOSINVENTARIO (CURRENT_DATE,'N','','','S','JCORTES') SP WHERE SP.idbodega = '1' AND SP.idproducto = '{{$json.idProducto}}'",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1952,
+        4512
+      ],
+      "id": "f0b43e6a-3fb6-41e0-8de6-ae9808c0e363",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "url": "=https://ws.dsnube.co/api/v1/consultasql?consulta={{ encodeURIComponent($json.consulta) }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2288,
+        4432
+      ],
+      "id": "4fc0fc23-2d60-4d95-a0b7-c399111cb1ca",
+      "name": "Get inventario",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "iZmm7J8xuJY9SSCi",
+          "name": "ERP"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nfor (const item of $input.all()) {\n  item.json.myNewField = 1;\n}\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2544,
+        4368
+      ],
+      "id": "52529990-44b1-4388-8aaf-35c405ebc4ed",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ac047186-0e09-4136-9fb7-6ba20d055075",
+              "leftValue": "={{ $json.pedido.errorInventario }}",
+              "rightValue": "",
+              "operator": {
+                "type": "array",
+                "operation": "exists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "650870b0-c103-4060-b0eb-6b61d2f95b21",
+              "leftValue": "={{ $json.pedido.errorInventario.length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3232,
+        3184
+      ],
+      "id": "a41d34c6-57d0-435b-9acf-4c3ae005ec95",
+      "name": "Pedido con error"
+    },
+    {
+      "parameters": {
+        "jsCode": "const peticionPedido = $input.first().json.pedido\nconst pedido = {\n  comentarios: peticionPedido.comentarios,\n  sucursal: peticionPedido.sucursal,\n  nit: peticionPedido.nit,\n  productos: peticionPedido.productos.map(producto => ({\n    ...producto,\n    error: peticionPedido.errorInventario.find(item => item.item.idProducto === producto.idProducto) ? \"Inventario no válido\" : null\n  }))\n}\n\nreturn {pedido};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3536,
+        2544
+      ],
+      "id": "848c49b7-3bfb-4d37-8617-6e7613140240",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "options": {
+          "responseCode": 422
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        4832,
+        2512
+      ],
+      "id": "88ca7ccf-9fc2-4c59-8fa1-93cd0e5ed089",
+      "name": "Respond to Webhook9"
+    },
+    {
+      "parameters": {
+        "table": {
+          "__rl": true,
+          "value": "error_pedido",
+          "mode": "list",
+          "cachedResultName": "error_pedido"
+        },
+        "dataMode": "defineBelow",
+        "valuesToSend": {
+          "values": [
+            {
+              "column": "id_pedido",
+              "value": "={{ $('Pedido completo').item.json.pedido.id }}"
+            },
+            {
+              "column": "error",
+              "value": "=  {{ $json.pedido.productos.filter(item => item.error).map(item => `${item.error} ${item.idProducto}`) }}"
+            }
+          ]
+        },
+        "options": {
+          "detailedOutput": true
+        }
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [
+        3856,
+        2608
+      ],
+      "id": "2a126019-208d-4e42-8bed-968d5bf682ad",
+      "name": "Error pedido1",
+      "credentials": {
+        "mySql": {
+          "id": "G0qkj4zstxDVRtx2",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "table": {
+          "__rl": true,
+          "value": "pedido",
+          "mode": "list",
+          "cachedResultName": "pedido"
+        },
+        "dataMode": "defineBelow",
+        "columnToMatchOn": "id",
+        "valueToMatchOn": "={{ $('Insertar pedido en la tabla').first().json.data.insertId }}",
+        "valuesToSend": {
+          "values": [
+            {
+              "column": "id_estado",
+              "value": "4"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [
+        3872,
+        2832
+      ],
+      "id": "75dbcf71-3eb1-41ed-b1b1-c701d0e2c2ab",
+      "name": "Actualizar pedido como guardado1",
+      "credentials": {
+        "mySql": {
+          "id": "G0qkj4zstxDVRtx2",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        4336,
+        2528
+      ],
+      "id": "c315d214-15c0-4467-b6e5-b066f1bcc689",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "46ceb882-9173-4b49-bc87-e7d1e9933f43",
+              "name": "pedido",
+              "value": "={{ $json.pedido }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4576,
+        2528
+      ],
+      "id": "10d44e43-d2b7-4b6d-bcb2-f0f4dc4ca079",
+      "name": "Extraer pedido"
+    },
+    {
+      "parameters": {
+        "jsCode": "let text = `\nswagger: \"2.0\"\ninfo:\n  title: GoPedidos API\n  description: Documentación OpenAPI de GoPedidos-API.\n  version: 25.1.4\n  \nhost: pedidos-api.trimon.co\nbasePath: /webhook\nschemes:\n  - https\n\n# 1. DEFINE THE SECURITY SCHEME\nsecurityDefinitions:\n  # The name 'BearerAuth' is arbitrary but descriptive\n  BearerAuth:\n    type: apiKey\n    name: Authorization\n    in: header\n    description: 'Bearer Token for authentication. Format: Bearer <token>'\n\n# 2. APPLY THE SECURITY REQUIREMENT GLOBALLY\nsecurity:\n  - BearerAuth: []\n\n# 3 schema definitions\ndefinitions:\n  Cliente:\n      type: object\n      properties:\n        nit:\n          type: integer\n          format: int64\n          description: Número de Identificación Tributaria del cliente.\n          example: 123456789\n        razonSocial:\n          type: string\n          description: Nombre legal o comercial del cliente.\n          example: Dummy S.A.S\n        sucursal:\n          type: integer\n          format: int32\n          description: Código de la sucursal del cliente (0 si es principal).\n          example: 0\n        telefono:\n          type: string\n          description: Número de teléfono de contacto.\n          example: \"3118566666\"\n        departamento:\n          type: string\n          description: Departamento o estado donde se encuentra el cliente.\n          example: Santander\n        direccion:\n          type: string\n          description: Dirección física completa del cliente.\n          example: carrera 1 # 26 - 03\n  # ------------------------------------------\n  ProductoItem:\n    type: object\n    required:\n      - cantidad\n      - idProducto\n    properties:\n      cantidad:\n        type: integer\n        format: int32\n        description: Cantidad del producto solicitado.\n      idProducto:\n        type: string\n        description: ID o código único del producto.\n  \n  PedidoBody:\n    type: object\n    required:\n      - idsuc\n      - nit\n      - productos\n    properties:\n      comentarios:\n        type: string\n        description: Comentarios adicionales sobre el pedido (opcional).\n      idsuc:\n        type: integer\n        format: int32\n        description: ID de la sucursal para la que se realiza el pedido.\n      nit:\n        type: integer\n        format: int64\n        description: NIT del cliente que realiza el pedido.\n      productos:\n        type: array\n        description: Lista detallada de productos incluidos en el pedido.\n        items:\n          $ref: '#/definitions/ProductoItem'\n\npaths:\n  /pedidos:\n    post :\n      summary: Crear pedidos.\n      description: Endpoint para crear nuevos pedidos en el sistema GoPedidos.\n      tags:\n        - v25.1.4\n      # Required for POST body requests\n      consumes:\n        - application/json\n      parameters:\n        - name: body\n          in: body\n          description: Estructura del pedido a crear.\n          required: true\n          schema:\n            $ref: '#/definitions/PedidoBody'\n      produces:\n        - text/plain\n      responses:\n        200:\n          description: OK\n  /productos:\n    get :\n      summary: Buscar productos.\n      description: Related to workflow [v25.1.4].\n      tags:\n        - v25.1.4\n      \n      produces:\n        - application/json\n      responses:\n        200:\n          description: OK\n  /clientes:\n    get :\n      summary: Buscar clientes.\n      description: Endpoint para buscar clientes en el sistema GoPedidos.\n      tags:\n        - v25.1.4\n      parameters:\n        - name: search\n          in: query\n          description: Primeras letras del nombre del cliente. Mínimo 3 letras.\n          type: string\n          required: true\n      produces:\n        - application/json\n      responses:\n        200:\n          description: OK\n  /authorize:\n    get :\n      summary: Authorize code.\n      description: Related to workflow [v25.1.4].\n      tags:\n        - v25.1.4\n      \n      produces:\n        - redirect\n      responses:\n        301:\n          description: OK\n  /user-info:\n    get :\n      summary: User info.\n      description: Related to workflow [v25.1.4].\n      tags:\n        - v25.1.4\n      \n      produces:\n        - application/json\n      responses:\n        200:\n          description: OK\n  /rest/oauth2-credential/callback:\n    get :\n      summary: Authorize code1.\n      description: Related to workflow [v25.1.4].\n      tags:\n        - v25.1.4\n      \n      produces:\n        - application/json\n      responses:\n        200:\n          description: OK\n  /transacciones:\n    get :\n      summary: Webhook.\n      description: Related to workflow [v25.1.4].\n      tags:\n        - v25.1.4\n      \n      produces:\n        - application/json\n      responses:\n        200:\n          description: OK\n`\n\nreturn { json: { text }};"
+      },
+      "id": "4d919022-e697-40f9-8d9f-e951a3aef0bf",
+      "name": "Crear OpenAPI yml",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        -1376,
+        6096
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "= <html>\n\n<head>\n\n  <title>GoPedidos API</title>\n\n  <link rel=\"stylesheet\" href=\"https://unpkg.com/swagger-ui-dist/swagger-ui.css\">\n\n</head>\n\n<body>\n\n  <div id=\"swagger-ui\"></div>\n\n\n  <script src=\"https://unpkg.com/swagger-ui-dist/swagger-ui-bundle.js\"></script>\n\n  <script src=\"https://unpkg.com/js-yaml@4.1.0/dist/js-yaml.min.js\"></script>\n\n  <script>\n\n    // Your YAML as a string (replace this with your actual variable)\n\n    const yamlText = `{{ $json.text }}`;\n\n\n    // Parse the YAML into a JavaScript object\n\n    const spec = jsyaml.load(yamlText);\n\n\n    // Initialize Swagger UI with the parsed spec\n\n    const ui = SwaggerUIBundle({\n\n      spec: spec,\n\n      dom_id: \"#swagger-ui\",\n\n      requestInterceptor: (req) => {\n\n        // Find the 'Authorization' header in the request object\n\n        if (req.headers && req.headers.Authorization) {\n\n          const authValue = req.headers.Authorization;\n\n          // Check if the value starts with 'Bearer '\n\n          if (!authValue.startsWith('Bearer ')) {\n\n            // If not, prepend it, using a case-insensitive check\n\n            req.headers.Authorization = `Bearer ${authValue}`;\n\n          }\n\n        }\n\n        return req;\n\n      }\n\n    });\n\n  </script>\n\n</body>\n\n</html> ",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html"
+              }
+            ]
+          }
+        }
+      },
+      "id": "8006dee7-1a46-4f9d-b06c-f7ac371d43ae",
+      "name": "OpenAPI response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "position": [
+        -992,
+        6144
+      ],
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {
+        "path": "docs",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "b7453a0a-ce6d-4b9d-b578-11eafbf58b6a",
+      "name": "Docs",
+      "type": "n8n-nodes-base.webhook",
+      "position": [
+        -1664,
+        6112
+      ],
+      "webhookId": "b6873bae-3e61-4a93-9dc2-0100b497390e",
+      "typeVersion": 2
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "x-forwarded-for": "24.202.192.175",
+            "x-forwarded-proto": "https",
+            "x-forwarded-port": "443",
+            "host": "pedidos-api.trimon.co",
+            "x-amzn-trace-id": "Root=1-68f8123b-668585ea313940cc20fc1182",
+            "accept": "application/json, text/plain, */*",
+            "accept-encoding": "gzip, deflate, br, zstd",
+            "accept-language": "en-US,en;q=0.5",
+            "authorization": "Bearer 1000.0e36e9464301e6605eafe13dc40cabc7.bccf46edd52b8654f329f75790187563",
+            "origin": "http://localhost:5173",
+            "priority": "u=0",
+            "referer": "http://localhost:5173/",
+            "sec-fetch-dest": "empty",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-site": "cross-site",
+            "user-agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0"
+          },
+          "params": {},
+          "query": {
+            "fechaInicio": "2025-10-22",
+            "fechaFin": "2025-10-22"
+          },
+          "body": {},
+          "webhookUrl": "https://pedidos-api.trimon.co/webhook-test/transacciones",
+          "executionMode": "test"
+        }
+      }
+    ],
+    "Buscar productos": [
+      {
+        "json": {
+          "headers": {
+            "x-forwarded-for": "24.202.192.175",
+            "x-forwarded-proto": "https",
+            "x-forwarded-port": "443",
+            "host": "pedidos-api.trimon.co",
+            "x-amzn-trace-id": "Root=1-68f94545-478658574d82e28a2d7c3342",
+            "user-agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0",
+            "accept": "application/json, text/plain, */*",
+            "accept-language": "en-US,en;q=0.5",
+            "accept-encoding": "gzip, deflate, br, zstd",
+            "referer": "https://pedidos.trimon.co/",
+            "origin": "https://pedidos.trimon.co",
+            "sec-fetch-dest": "empty",
+            "sec-fetch-mode": "no-cors",
+            "sec-fetch-site": "same-site",
+            "authorization": "Bearer 1000.0e36e9464301e6605eafe13dc40cabc7.bccf46edd52b8654f329f75790187563",
+            "if-none-match": "W/\"6f71-A4AjC79JaIAfA2n5cPpDxhEEtD8\"",
+            "priority": "u=0",
+            "pragma": "no-cache",
+            "cache-control": "no-cache"
+          },
+          "params": {},
+          "query": {
+            "clientenit": "900339960",
+            "sucursalId": "0",
+            "search": "LS-"
+          },
+          "body": {},
+          "webhookUrl": "https://pedidos-api.trimon.co/webhook-test/productos",
+          "executionMode": "test"
+        }
+      }
+    ],
+    "Crear pedidos": [
+      {
+        "json": {
+          "headers": {
+            "x-forwarded-for": "24.202.192.175",
+            "x-forwarded-proto": "https",
+            "x-forwarded-port": "443",
+            "host": "pedidos-api.trimon.co",
+            "x-amzn-trace-id": "Root=1-68fe6b0a-05adf8b316b65376497c11d5",
+            "content-length": "276",
+            "accept": "application/json",
+            "authorization": "Bearer 1000.196d0811d4b0af61c8ae2a518d2f1ec9.82b8edc77e402029eff6a27fe5d167c8",
+            "content-type": "application/json"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "comentarios": "Comentarios pruebas pedido",
+            "idsuc": 1,
+            "nit": 900339960,
+            "productos": [
+              {
+                "cantidad": 1,
+                "idProducto": "BUM-C37"
+              },
+              {
+                "cantidad": 1,
+                "idProducto": "BUM-DFM-01"
+              }
+            ]
+          },
+          "webhookUrl": "https://pedidos-api.trimon.co/webhook-test/pedidos",
+          "executionMode": "test"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "GET Clients": {
+      "main": [
+        [
+          {
+            "node": "Mapear clientes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET Products": {
+      "main": [
+        [
+          {
+            "node": "Mapear productos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mapear productos": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crear pedidos": {
+      "main": [
+        [
+          {
+            "node": "Mapear pedido",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Call 'GetUserInfo'2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar productos": {
+      "main": [
+        [
+          {
+            "node": "Call 'GetUserInfo'1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar clientes": {
+      "main": [
+        [
+          {
+            "node": "Call 'Get user info'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mapear clientes": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insertar pedido en la tabla": {
+      "main": [
+        [
+          {
+            "node": "Mapear detalle",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Constuir el payload del pedido para ERP": {
+      "main": [
+        [
+          {
+            "node": "POST pedido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Actualizar pedido como guardado",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Preparar items de factura",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error pedido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Actualizar pedido como guardado": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mapear detalle": {
+      "main": [
+        [
+          {
+            "node": "Get product info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mapear pedido": {
+      "main": [
+        [
+          {
+            "node": "Get Sucursal info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "QueryVendedor": {
+      "main": [
+        [
+          {
+            "node": "Get vendedor id",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Componer vendedor info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get vendedor id": {
+      "main": [
+        [
+          {
+            "node": "Mapear id vendedor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mapear id vendedor": {
+      "main": [
+        [
+          {
+            "node": "Componer vendedor info",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Componer vendedor info": {
+      "main": [
+        [
+          {
+            "node": "Mapear vendedor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'GetUserInfo'1": {
+      "main": [
+        [
+          {
+            "node": "Hay error1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extraer cliente y sucursal": {
+      "main": [
+        [
+          {
+            "node": "GET Products",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hay error1": {
+      "main": [
+        [
+          {
+            "node": "No Authorizado",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Extraer cliente y sucursal",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "No Authorizado",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "QueryVendedor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'GetUserInfo'2": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Componer request": {
+      "main": [
+        [
+          {
+            "node": "Insertar pedido en la tabla",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET Products1": {
+      "main": [
+        [
+          {
+            "node": "item y detalle info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mapear vendedor": {
+      "main": [
+        [
+          {
+            "node": "Componer request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Sucursal info": {
+      "main": [
+        [
+          {
+            "node": "Componer pedido y sucursal",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Componer pedido y sucursal": {
+      "main": [
+        [
+          {
+            "node": "Componer request",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Pedido completo": {
+      "main": [
+        [
+          {
+            "node": "Pedido con error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "item de pedido": {
+      "main": [
+        [
+          {
+            "node": "GET Products1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "item y detalle info": {
+      "main": [
+        [
+          {
+            "node": "Insertar detalle pedido en la tabla1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get product info": {
+      "main": [
+        [
+          {
+            "node": "Pedido completo",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "item de pedido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insertar detalle pedido en la tabla1": {
+      "main": [
+        [
+          {
+            "node": "set detalle id",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "set detalle id": {
+      "main": [
+        [
+          {
+            "node": "Get product info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sin error": {
+      "main": [
+        [
+          {
+            "node": "extraer parametros",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Authorizado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST pedido": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'GetUserInfo'4": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "No Authorizado1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "QueryVendedor1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Componer vendedor info1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "QueryVendedor1": {
+      "main": [
+        [
+          {
+            "node": "Get vendedor id1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get vendedor id1": {
+      "main": [
+        [
+          {
+            "node": "Mapear id vendedor1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mapear id vendedor1": {
+      "main": [
+        [
+          {
+            "node": "Componer vendedor info1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Componer vendedor info1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript3": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Historial-pedidos": {
+      "main": [
+        [
+          {
+            "node": "Call 'GetUserInfo'4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Respuesta ok pedido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Get token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "error": {
+      "main": [
+        [
+          {
+            "node": "Code3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code3": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Authorize code": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get token": {
+      "main": [
+        [
+          {
+            "node": "error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "User info": {
+      "main": [
+        [
+          {
+            "node": "Call 'GetUserInfo'3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'GetUserInfo'3": {
+      "main": [
+        [
+          {
+            "node": "Hay error2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hay error2": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTML": {
+      "main": [
+        [
+          {
+            "node": "Send Mail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Mail": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Preparar items de factura": {
+      "main": [
+        [
+          {
+            "node": "HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "extraer parametros": {
+      "main": [
+        [
+          {
+            "node": "GET Clients",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'Get user info'": {
+      "main": [
+        [
+          {
+            "node": "Sin error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Call 'Get user info'1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'Get user info'1": {
+      "main": [
+        [
+          {
+            "node": "Mapear parametros",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mapear parametros": {
+      "main": [
+        [
+          {
+            "node": "Validar parametros",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar parametros": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook6",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Consultar transacciones",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consultar transacciones": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code6": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error pedido": {
+      "main": [
+        [
+          {
+            "node": "Respuesta error pedido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Get inventario",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get inventario": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        []
+      ]
+    },
+    "Pedido con error": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Constuir el payload del pedido para ERP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "Error pedido1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Actualizar pedido como guardado1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error pedido1": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Actualizar pedido como guardado1": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Extraer pedido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extraer pedido": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook9",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crear OpenAPI yml": {
+      "main": [
+        [
+          {
+            "node": "OpenAPI response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Docs": {
+      "main": [
+        [
+          {
+            "node": "Crear OpenAPI yml",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "GAxlkslRqxatRwGR",
+    "timeSavedPerExecution": 5
+  },
+  "versionId": "a60fe89c-816e-46ad-9477-68873e523ede",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d34057ca63c4e01d59e567c76aa634478b977634d1c05c3acfd890eff199f6d3"
+  },
+  "id": "49VaBBj4PjCoI3r1",
+  "tags": []
+}
