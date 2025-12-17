@@ -20,11 +20,9 @@ const apiClient: AxiosInstance = axios.create({
 });
 
 apiClient.interceptors.request.use((config) => {
-  console.log("applying interceptor");
   const token = localStorage.getItem("session_token");
-  console.log("token", token);
+
   if (token && config.headers) {
-    console.log("adding header");
     config.headers.Authorization = `Bearer ${token}`;
   }
 
@@ -68,17 +66,14 @@ apiClient.interceptors.response.use(
 
 export default apiClient;
 
-export const getClients = async (
-  token: string,
-  filtro?: string,
-): Promise<Cliente[]> => {
+export const getClients = async (filtro?: string): Promise<Cliente[]> => {
   // Si hay filtro, se agrega el parámetro ?search=
   const endpoint =
     filtro && filtro.trim().length >= 3
       ? `${CLIENTS_ENDPOINT}?search=${encodeURIComponent(filtro)}`
       : CLIENTS_ENDPOINT;
 
-  return getData(endpoint, token)
+  return getData(endpoint)
     .then((result) => result.clientes)
     .catch((err) => {
       console.log("❌ Error al obtener clientes:", err);
@@ -87,7 +82,6 @@ export const getClients = async (
 };
 
 export const getProducts = async (
-  token: string,
   clientenit: string,
   sucursalId: string,
   filtro?: string,
@@ -95,13 +89,12 @@ export const getProducts = async (
   const filtroParam = filtro ? `&search=${filtro.toUpperCase()}` : "";
   return getData(
     `${PRODUCTS_ENDPOINT}?clientenit=${clientenit}&sucursalId=${sucursalId}${filtroParam}`,
-    token,
   )
     .then((result) => result.productos)
     .catch((err) => console.log("error fetching products ", err));
 };
 
-export const getUserInfo = async (token: string): Promise<any> => {
+export const getUserInfo = async (): Promise<any> => {
   return getData(USER_INFO_ENDPOINT).catch((err) => {
     console.log("error fetching user info ", err);
     return err?.response?.data;

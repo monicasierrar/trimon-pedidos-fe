@@ -111,8 +111,7 @@ const PedidosPage: React.FC = () => {
 
     setBuscandoClientes(true);
     try {
-      const token = localStorage.getItem("session_token") || "";
-      const clientes = await getClients(token, termino);
+      const clientes = await getClients(termino);
       setListaClientes(clientes || []);
       setMostrarListaClientes(true);
 
@@ -168,9 +167,7 @@ const PedidosPage: React.FC = () => {
     setListaProductos([]);
 
     try {
-      const token = localStorage.getItem("session_token") || "";
       const productos = await getProducts(
-        token,
         clienteSeleccionado.nit,
         clienteSeleccionado.sucursal.toString(),
         termino,
@@ -304,9 +301,8 @@ const PedidosPage: React.FC = () => {
     };
 
     try {
-      const token = localStorage.getItem("session_token") || "";
       setProductoConError(new Map());
-      const response = await guardarPedido(token, pedido);
+      const response = await guardarPedido(pedido);
       if (response && response.pedido?.id) {
         resetToInitial();
         setNotificacion({

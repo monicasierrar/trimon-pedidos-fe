@@ -19,7 +19,7 @@ const AuthCallback = () => {
         localStorage.setItem("session_token", accessToken);
         localStorage.setItem("expiresIn", expiresIn);
         localStorage.setItem("refresh_token", refreshToken);
-        const userInfo = await getUserInfo(accessToken);
+        const userInfo = await getUserInfo();
         if (userInfo.error) {
           navigate("/login?error=" + encodeURI(userInfo.error));
         } else {
