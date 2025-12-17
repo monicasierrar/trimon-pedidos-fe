@@ -93,11 +93,7 @@ const HistorialPage = () => {
     setPedidosFiltrados([]);
 
     try {
-      const pedidosResultado = await getHistorialPedidos(
-        localStorage.getItem("session_token") || "",
-        inicioStr,
-        finStr,
-      );
+      const pedidosResultado = await getHistorialPedidos(inicioStr, finStr);
 
       // Filtrado por día usando dayjs
       const filtrados = pedidosResultado.filter((pedido) => {

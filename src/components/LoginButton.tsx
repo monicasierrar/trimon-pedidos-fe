@@ -1,19 +1,17 @@
-
 // src/components/LoginButton.js
 
-import Button from '@mui/material/Button';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import logo from '../assets/logo.png';
+import Button from "@mui/material/Button";
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+import logo from "../assets/logo.png";
 
 const LoginButton = () => {
   const handleLogin = () => {
     const ZOHO_CLIENT_ID = import.meta.env.VITE_ZOHO_CLIENT_ID;
     const REDIRECT_URI = import.meta.env.VITE_REDIRECT_URI;
-    const SCOPES = 'aaaserver.profile.READ,ZohoMail.accounts.READ';
+    const SCOPES = "aaaserver.profile.READ,ZohoMail.accounts.READ";
 
-    const zohoAuthUrl = `https://accounts.zoho.com/oauth/v2/auth?scope=${SCOPES}&client_id=${ZOHO_CLIENT_ID}&response_type=code&access_type=offline&redirect_uri=${REDIRECT_URI}`;
-
+    const zohoAuthUrl = `https://accounts.zoho.com/oauth/v2/auth?scope=${SCOPES}&client_id=${ZOHO_CLIENT_ID}&response_type=code&access_type=offline&redirect_uri=${REDIRECT_URI}&prompt=consent`;
     window.location.href = zohoAuthUrl;
   };
 
@@ -28,12 +26,13 @@ const LoginButton = () => {
       textAlign="center"
     >
       {/* Logo responsive */}
-      <Box component="img"
+      <Box
+        component="img"
         src={logo}
         alt="Logo"
         sx={{
-          width: { xs: '150px', sm: '200px' },
-          mb: 3
+          width: { xs: "150px", sm: "200px" },
+          mb: 3,
         }}
       />
 
@@ -43,9 +42,9 @@ const LoginButton = () => {
       </Typography>
 
       {/* Botón de login */}
-      <Button 
-        variant="contained" 
-        color="primary" 
+      <Button
+        variant="contained"
+        color="primary"
         size="large"
         onClick={handleLogin}
         sx={{ mt: 2 }}

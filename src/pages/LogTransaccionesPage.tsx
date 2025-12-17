@@ -31,7 +31,6 @@ const LogTransaccionesPage = () => {
     if (fechaInicio && fechaFin) {
       setTransaccionesFiltradas([]);
       getTransacciones(
-        localStorage.getItem("session_token") || "",
         `${fechaInicio.format("YYYY-MM-DD")}`,
         `${fechaFin.format("YYYY-MM-DD")}`,
       )

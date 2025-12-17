@@ -40,9 +40,9 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({
   const navigate = useNavigate();
   const location = useLocation();
 
-  const userInfo = useMemo(() => {
+  useMemo(() => {
     if (sessionToken) {
-      getUserInfo(sessionToken)
+      getUserInfo()
         .then((info) => {
           if (!info || !Object.keys(info).length) {
             navigate("/login?error=" + encodeURI("Usuario no valido"));
@@ -55,8 +55,6 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({
         });
     }
   }, [sessionToken, navigate]);
-
-  console.log(userInfo);
 
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -71,6 +69,8 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({
     localStorage.removeItem("session_token");
     localStorage.removeItem("user_name");
     localStorage.removeItem("user_avatar");
+    localStorage.removeItem("refresh_token");
+    localStorage.clear();
 
     navigate("/login"); // Redirigir a la página de inicio
   };

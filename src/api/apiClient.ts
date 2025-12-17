@@ -1,4 +1,4 @@
-import axios, { AxiosResponse } from "axios";
+import axios, { AxiosInstance, AxiosResponse } from "axios";
 import {
   Cliente,
   CrearPedido,
@@ -13,18 +13,67 @@ const PRODUCTS_ENDPOINT = "/productos";
 const PEDIDOS_ENDPOINT = "/pedidos";
 const TRANSACCIONES_ENDPOINT = "/transacciones";
 const USER_INFO_ENDPOINT = "/user-info";
+const REFRESH_ENDPOINT = "/refresh-token";
 
-export const getClients = async (
-  token: string,
-  filtro?: string,
-): Promise<Cliente[]> => {
+const apiClient: AxiosInstance = axios.create({
+  baseURL: API_BASE_URL,
+});
+
+apiClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem("session_token");
+
+  if (token && config.headers) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
+  return config;
+});
+
+apiClient.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+
+    // Check if error is 401 (Unauthorized) and we haven't retried yet
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      console.log("Sesion vencida, intentando refrescar el token");
+      originalRequest._retry = true;
+
+      try {
+        const refreshToken = localStorage.getItem("refresh_token");
+
+        // Call your n8n PROXY, NOT Zoho directly
+        const res = await axios.post(REFRESH_ENDPOINT, {
+          refresh_token: refreshToken,
+        });
+
+        const { access_token } = res.data;
+
+        localStorage.setItem("session_token", access_token);
+        originalRequest.headers.Authorization = `Bearer ${access_token}`;
+
+        return apiClient(originalRequest);
+      } catch (refreshError) {
+        // If the refresh token is also invalid, log the user out
+        localStorage.clear();
+        window.location.href = "/login";
+        return Promise.reject(refreshError);
+      }
+    }
+    return Promise.reject(error);
+  },
+);
+
+export default apiClient;
+
+export const getClients = async (filtro?: string): Promise<Cliente[]> => {
   // Si hay filtro, se agrega el parámetro ?search=
   const endpoint =
     filtro && filtro.trim().length >= 3
       ? `${CLIENTS_ENDPOINT}?search=${encodeURIComponent(filtro)}`
       : CLIENTS_ENDPOINT;
 
-  return getData(endpoint, token)
+  return getData(endpoint)
     .then((result) => result.clientes)
     .catch((err) => {
       console.log("❌ Error al obtener clientes:", err);
@@ -33,7 +82,6 @@ export const getClients = async (
 };
 
 export const getProducts = async (
-  token: string,
   clientenit: string,
   sucursalId: string,
   filtro?: string,
@@ -41,21 +89,20 @@ export const getProducts = async (
   const filtroParam = filtro ? `&search=${filtro.toUpperCase()}` : "";
   return getData(
     `${PRODUCTS_ENDPOINT}?clientenit=${clientenit}&sucursalId=${sucursalId}${filtroParam}`,
-    token,
   )
     .then((result) => result.productos)
     .catch((err) => console.log("error fetching products ", err));
 };
 
-export const getUserInfo = async (token: string): Promise<any> => {
-  return getData(USER_INFO_ENDPOINT, token).catch((err) => {
+export const getUserInfo = async (): Promise<any> => {
+  return getData(USER_INFO_ENDPOINT).catch((err) => {
     console.log("error fetching user info ", err);
     return err?.response?.data;
   });
 };
 
-export const guardarPedido = async (token: string, pedido: CrearPedido) => {
-  return postData(token, PEDIDOS_ENDPOINT, pedido).catch((err) => {
+export const guardarPedido = async (pedido: CrearPedido) => {
+  return postData(PEDIDOS_ENDPOINT, pedido).catch((err) => {
     console.log("error creando pedido: ", err);
     return { status: err.status, pedido: err.response.data.pedido };
   });
@@ -63,19 +110,12 @@ export const guardarPedido = async (token: string, pedido: CrearPedido) => {
 
 const getData = async (
   endpoint: string,
-  token: string,
   params?: Record<string, any>,
 ): Promise<any> => {
   try {
-    const response: AxiosResponse = await axios.get(
-      `${API_BASE_URL}${endpoint}`,
-      {
-        params, // Query parameters
-        headers: {
-          Authorization: `Bearer ${token || ""}`, // Add Bearer token if provided
-        },
-      },
-    );
+    const response: AxiosResponse = await apiClient.get(endpoint, {
+      params, // Query parameters},
+    });
     return response.data; // Return the response data
   } catch (error) {
     console.error("Error during GET request:", error);
@@ -84,20 +124,11 @@ const getData = async (
 };
 
 const postData = async (
-  token: string,
   endpoint: string,
   data: Record<string, any>,
 ): Promise<any> => {
   try {
-    const response: AxiosResponse = await axios.post(
-      `${API_BASE_URL}${endpoint}`,
-      data,
-      {
-        headers: {
-          Authorization: `Bearer ${token || ""}`, // Add Bearer token if provided
-        },
-      },
-    );
+    const response: AxiosResponse = await apiClient.post(endpoint, data);
     return response.data; // Return the response data
   } catch (error) {
     console.error("Error during POST request:", error);
@@ -106,12 +137,11 @@ const postData = async (
 };
 
 export const getHistorialPedidos = async (
-  token: string,
   fechaInicio: string,
   fechaFin: string,
 ): Promise<HistorialPedidos[]> => {
   try {
-    const response = await getData(PEDIDOS_ENDPOINT, token, {
+    const response = await getData(PEDIDOS_ENDPOINT, {
       fechaInicio,
       fechaFin,
     });
@@ -124,12 +154,11 @@ export const getHistorialPedidos = async (
 };
 
 export const getTransacciones = async (
-  token: string,
   fechaInicio: string,
   fechaFin: string,
 ): Promise<Transaccion[]> => {
   try {
-    const response = await getData(TRANSACCIONES_ENDPOINT, token, {
+    const response = await getData(TRANSACCIONES_ENDPOINT, {
       fechaInicio,
       fechaFin,
     });

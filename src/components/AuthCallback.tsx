@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { getUserInfo } from "../api/apiClient";
 
@@ -7,17 +7,19 @@ const AuthCallback = () => {
 
   const { search } = useLocation();
 
-  const params = new URLSearchParams(search);
+  const params = useMemo(() => new URLSearchParams(search), [search]);
 
   useEffect(() => {
     const fetchData = async () => {
       const accessToken = params.get("access_token");
       const expiresIn = params.get("expires_in");
+      const refreshToken = params.get("refresh_token");
 
-      if (accessToken && expiresIn) {
+      if (accessToken && expiresIn && refreshToken) {
         localStorage.setItem("session_token", accessToken);
         localStorage.setItem("expiresIn", expiresIn);
-        const userInfo = await getUserInfo(accessToken);
+        localStorage.setItem("refresh_token", refreshToken);
+        const userInfo = await getUserInfo();
         if (userInfo.error) {
           navigate("/login?error=" + encodeURI(userInfo.error));
         } else {
