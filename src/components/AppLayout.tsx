@@ -71,6 +71,8 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({
     localStorage.removeItem("session_token");
     localStorage.removeItem("user_name");
     localStorage.removeItem("user_avatar");
+    localStorage.removeItem("refresh_token");
+    localStorage.clear();
 
     navigate("/login"); // Redirigir a la página de inicio
   };
