@@ -54,7 +54,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({
           console.error("Error obteniendo user-info", error);
         });
     }
-  }, [sessionToken, navigate]);
+  }, [navigate]);
 
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
