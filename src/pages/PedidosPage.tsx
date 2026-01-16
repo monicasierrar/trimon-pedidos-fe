@@ -225,8 +225,16 @@ const PedidosPage: React.FC = () => {
     const productosPedido = [...productosDelPedido];
     const producto = productosPedido.find((p) => p.codigo === codigo);
     if (!producto) return;
-    producto.cantidad = cantidad;
-    setProductosDelPedido(productosPedido);
+    if (producto.stock < +cantidad) {
+      setNotificacion({
+        open: true,
+        message: "Inventario no disponible.",
+        severity: "error",
+      });
+    } else {
+      producto.cantidad = cantidad;
+      setProductosDelPedido(productosPedido);
+    }
   };
 
   // -------- Remover producto --------
