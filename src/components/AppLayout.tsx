@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React from "react";
 import {
   AppBar,
   Toolbar,
@@ -22,9 +22,10 @@ import logo from "../assets/logo.png";
 import PointOfSaleIcon from "@mui/icons-material/PointOfSale";
 import HistoryIcon from "@mui/icons-material/History";
 import SyncAltIcon from "@mui/icons-material/SyncAlt";
-import { getUserInfo } from "../api/apiClient";
+import { useUser } from "../context/UserContext";
 
 const drawerWidth = 240;
+const version = import.meta.env.VITE_APP_VERSION || "1.0.0";
 
 export const AppLayout: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -32,29 +33,13 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({
   // En lugar de useAuthState, ahora verificamos si existe el token de sesión
   const sessionToken = localStorage.getItem("session_token") || "";
   // Suponemos que también guardaremos datos del usuario en localStorage después del login
-  const userName = localStorage.getItem("user_name");
+  const { user } = useUser();
   const userAvatar = localStorage.getItem("user_avatar");
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
 
   const navigate = useNavigate();
   const location = useLocation();
-
-  useMemo(() => {
-    if (sessionToken) {
-      getUserInfo()
-        .then((info) => {
-          if (!info || !Object.keys(info).length) {
-            navigate("/login?error=" + encodeURI("Usuario no valido"));
-          }
-          localStorage.setItem("user_name", info.displayName);
-          return info;
-        })
-        .catch((error) => {
-          console.error("Error obteniendo user-info", error);
-        });
-    }
-  }, [sessionToken, navigate]);
 
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -67,7 +52,6 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({
   // La nueva función de Logout
   const handleLogout = () => {
     localStorage.removeItem("session_token");
-    localStorage.removeItem("user_name");
     localStorage.removeItem("user_avatar");
     localStorage.removeItem("refresh_token");
     localStorage.clear();
@@ -95,7 +79,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({
             <div>
               <IconButton onClick={handleMenu} sx={{ p: 0 }}>
                 {/* Usamos los datos del usuario guardados en localStorage */}
-                <Avatar alt={userName || ""} src={userAvatar || ""} />
+                <Avatar alt={user?.displayName || ""} src={userAvatar || ""} />
               </IconButton>
               <Menu
                 anchorEl={anchorEl}
@@ -107,7 +91,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({
               >
                 <MenuItem disabled>
                   {/* Mostramos el nombre guardado */}
-                  <Typography variant="body1">{userName}</Typography>
+                  <Typography variant="body1">{user?.displayName}</Typography>
                 </MenuItem>
                 <Divider />
                 <MenuItem onClick={handleLogout}>Cerrar Sesión</MenuItem>
@@ -159,6 +143,9 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({
               </ListItemIcon>
               <ListItemText primary="Log de Transacciones" />
             </ListItemButton>
+            <Box>
+              <Typography variant="caption" noWrap component="div" sx={{ flexGrow: 1 }}>{version}</Typography>
+              </Box>
           </List>
         </Box>
       </Drawer>
