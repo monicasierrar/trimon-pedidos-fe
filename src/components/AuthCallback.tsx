@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { getUserInfo } from "../api/apiClient";
+import { useUser } from "../context/UserContext";
 
 const AuthCallback = () => {
   const navigate = useNavigate();
@@ -8,6 +8,8 @@ const AuthCallback = () => {
   const { search } = useLocation();
 
   const params = useMemo(() => new URLSearchParams(search), [search]);
+
+  const { setUser } = useUser();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -17,22 +19,16 @@ const AuthCallback = () => {
 
       if (accessToken && expiresIn && refreshToken) {
         localStorage.setItem("session_token", accessToken);
-        localStorage.setItem("expiresIn", expiresIn);
         localStorage.setItem("refresh_token", refreshToken);
-        const userInfo = await getUserInfo();
-        if (userInfo.error) {
-          navigate("/login?error=" + encodeURI(userInfo.error));
-        } else {
-          localStorage.setItem("user_name", `${userInfo.displayName}`);
-          navigate("/");
-        }
+        navigate("/");
       } else {
         navigate("/login");
       }
     };
 
     fetchData();
-  }, [params, navigate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params, navigate, setUser]);
 
   return <div>Loading...</div>;
 };

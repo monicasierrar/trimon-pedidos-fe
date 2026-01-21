@@ -41,16 +41,24 @@ apiClient.interceptors.response.use(
 
       try {
         const refreshToken = localStorage.getItem("refresh_token");
-
+        console.log('Refrescando token')
         // Call your n8n PROXY, NOT Zoho directly
-        const res = await axios.post(REFRESH_ENDPOINT, {
+        const res = await axios.post(`${API_BASE_URL}${REFRESH_ENDPOINT}`, {
           refresh_token: refreshToken,
-        });
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem("session_token")}`,
+          },
+        },
+      );
+      console.log("Nuevo token obtenido")
 
-        const { access_token } = res.data;
+        const { accessToken } = res.data;
 
-        localStorage.setItem("session_token", access_token);
-        originalRequest.headers.Authorization = `Bearer ${access_token}`;
+        localStorage.setItem("session_token", accessToken);
+        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
 
         return apiClient(originalRequest);
       } catch (refreshError) {
