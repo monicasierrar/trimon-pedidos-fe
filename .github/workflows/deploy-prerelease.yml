@@ -56,10 +56,12 @@ jobs:
 
       - name: Build Trimon Pedidos FE
         run: npm run build
-        env: VITE_ZOHO_CLIENT_ID=${{ vars.VITE_ZOHO_CLIENT_ID }}
-          VITE_API_BASE_URL="https://pedidos-api.trimon.co/webhook"
-          VITE_REDIRECT_URI="https://pedidos-api.trimon.co/webhook/authorize"
-          VITE_USE_AUTH="true"
+        env:
+          VITE_ZOHO_CLIENT_ID: ${{ vars.VITE_ZOHO_CLIENT_ID }}
+          VITE_API_BASE_URL: "https://pedidos-api.trimon.co/webhook"
+          VITE_REDIRECT_URI: "https://pedidos-api.trimon.co/webhook/authorize"
+          VITE_USE_AUTH: "true"
+          VITE_APP_VERSION: ${{ env.VERSION }}
 
       - name: 🔑 Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
